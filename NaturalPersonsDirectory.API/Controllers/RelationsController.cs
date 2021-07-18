@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace NaturalPersonsDirectory.API.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class RelationsController : ControllerBase
     {
         private readonly IRelationService _relationService;

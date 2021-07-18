@@ -8,17 +8,16 @@ namespace NaturalPersonsDirectory.Db.Configurations
     {
         public void Configure(EntityTypeBuilder<Relation> builder)
         {
-            builder
-                .HasKey(relation => new { relation.FromId, relation.ToId });
+            builder.HasKey(relation => relation.Id);
 
             builder
-                .HasOne(relation => relation.RelationFrom)
+                .HasOne(relation => relation.From)
                 .WithMany()
                 .HasForeignKey(relation => relation.FromId)
                 .OnDelete(DeleteBehavior.NoAction);
 
             builder
-                .HasOne(relation => relation.RelationTo)
+                .HasOne(relation => relation.To)
                 .WithMany()
                 .HasForeignKey(relation => relation.ToId)
                 .OnDelete(DeleteBehavior.NoAction);

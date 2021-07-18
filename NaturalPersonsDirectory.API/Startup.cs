@@ -1,3 +1,4 @@
+using System;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -5,10 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Modules;
 using System.Reflection;
+using Microsoft.OpenApi.Models;
 
 namespace NaturalPersonsDirectory.API
 {
@@ -26,8 +27,18 @@ namespace NaturalPersonsDirectory.API
             services.AddControllers().AddNewtonsoftJson(options =>
                 options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore
             );
-            services.AddMvc().AddFluentValidation(config => config.RegisterValidatorsFromAssembly(Assembly.Load("NaturalPersonsDirectory.Modules")));
-            services.AddDbContext<NaturalPersonsDirectoryDbContext>(options => options.UseSqlServer(GlobalVariables.DbConnectionString));
+
+            services.AddMvc().AddFluentValidation(
+                config => config.RegisterValidatorsFromAssembly(Assembly.Load("NaturalPersonsDirectory.Modules")));
+
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo {Title = "NPDirectory.Api", Version = "v1"});
+            });
+            
+            services.AddDbContext<ApplicationDbContext>(
+                options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            
             services.AddTransient<INaturalPersonService, NaturalPersonService>();
             services.AddTransient<IRelationService, RelationService>();
         }
@@ -37,15 +48,13 @@ namespace NaturalPersonsDirectory.API
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseSwagger();
+                app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NPDirectory.Api v1"));
             }
-
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseAuthorization();
-
-            app.UseStaticFiles();
 
             Seeder.Seed(app);
 

@@ -15,9 +15,9 @@ namespace NaturalPersonsDirectory.Modules
 {
     public class NaturalPersonService : INaturalPersonService
     {
-        private readonly NaturalPersonsDirectoryDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        public NaturalPersonService(NaturalPersonsDirectoryDbContext context)
+        public NaturalPersonService(ApplicationDbContext context)
         {
             _context = context;
         }
@@ -36,13 +36,13 @@ namespace NaturalPersonsDirectory.Modules
                 var naturalPerson = new NaturalPerson()
                 {
                     FirstNameEn = request.FirstNameEn,
-                    FirstNameGE = request.FirstNameGE,
+                    FirstNameGe = request.FirstNameGE,
                     LastNameEn = request.LastNameEn,
                     LastNameGe = request.LastNameGe,
                     Address = request.Address,
                     PassportNumber = request.PassportNumber,
                     Birthday = DateTime.Parse(request.Birthday),
-                    ContactInformations = request.ContactInformations,
+                    ContactInformation = request.ContactInformation,
                 };
 
                 _context.NaturalPersons.Add(naturalPerson);
@@ -65,14 +65,14 @@ namespace NaturalPersonsDirectory.Modules
         {
             try
             {
-                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(naturalPerson => naturalPerson.NaturalPersonId == id);
+                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
 
                 if (naturalPerson == null)
                 {
                     return ResponseHelper.Fail<NaturalPersonResponse>(StatusCode.IdNotExists);
                 }
 
-                var relations = await _context.Relations.Where(relation => relation.FromId == naturalPerson.NaturalPersonId || relation.ToId == naturalPerson.NaturalPersonId).ToListAsync();
+                var relations = await _context.Relations.Where(relation => relation.FromId == naturalPerson.Id || relation.ToId == naturalPerson.Id).ToListAsync();
 
                 if (relations.Any())
                 {
@@ -109,7 +109,7 @@ namespace NaturalPersonsDirectory.Modules
                     .Take(parameters.PageSize)
                     .ToListAsync();
 
-                if (ValidateFormat.ValidOrder(parameters.OrderBy) && prop != null)
+                if (Validator.ValidateOrder(parameters.OrderBy) && prop != null)
                 {
                     naturalPersons = naturalPersons.OrderBy(property => prop.GetValue(property, null)).ToList();
                 }
@@ -131,7 +131,7 @@ namespace NaturalPersonsDirectory.Modules
         {
             try
             {
-                var naturalPerson = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.NaturalPersonId == id);
+                var naturalPerson = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
 
                 var response = new NaturalPersonResponse()
                 {
@@ -150,7 +150,7 @@ namespace NaturalPersonsDirectory.Modules
         {
             try
             {
-                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.NaturalPersonId == id);
+                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
 
                 if (naturalPerson == null)
                 {
@@ -163,12 +163,12 @@ namespace NaturalPersonsDirectory.Modules
                 }
 
                 naturalPerson.FirstNameEn = request.FirstNameEn;
-                naturalPerson.FirstNameGE = request.FirstNameGE;
+                naturalPerson.FirstNameGe = request.FirstNameGE;
                 naturalPerson.LastNameEn = request.LastNameEn;
                 naturalPerson.LastNameGe = request.LastNameGe;
                 naturalPerson.Address = request.Address;
                 naturalPerson.Birthday = DateTime.Parse(request.Birthday);
-                naturalPerson.ContactInformations = request.ContactInformations;
+                naturalPerson.ContactInformation = request.ContactInformation;
 
                 _context.NaturalPersons.Update(naturalPerson);
                 await _context.SaveChangesAsync();
@@ -188,15 +188,15 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<IResponse<RelatedPersonsResponse>> GetRelatedPersons(int id)
         {
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(naturalPerson => naturalPerson.NaturalPersonId == id);
+            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
 
             if (naturalPerson == null)
             {
                 return ResponseHelper.Fail<RelatedPersonsResponse>(StatusCode.IdNotExists);
             }
 
-            var relationsFrom = await _context.Relations.Where(relation => relation.FromId == id).Include(relation => relation.RelationTo).ToListAsync();
-            var relationsTo = await _context.Relations.Where(relation => relation.ToId == id).Include(relation => relation.RelationFrom).ToListAsync();
+            var relationsFrom = await _context.Relations.Where(relation => relation.FromId == id).Include(relation => relation.To).ToListAsync();
+            var relationsTo = await _context.Relations.Where(relation => relation.ToId == id).Include(relation => relation.From).ToListAsync();
 
             var relatedPersons = new List<RelatedPerson>();
 
@@ -204,7 +204,7 @@ namespace NaturalPersonsDirectory.Modules
             {
                 foreach (var relation in relationsFrom)
                 {
-                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.RelationTo);
+                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.To);
                     RelatedPerson relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
                     relatedPerson.RelationType = relation.RelationType;
 
@@ -216,7 +216,7 @@ namespace NaturalPersonsDirectory.Modules
             {
                 foreach (var relation in relationsTo)
                 {
-                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.RelationFrom);
+                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.From);
                     RelatedPerson relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
                     relatedPerson.RelationType = relation.RelationType;
 
@@ -241,7 +241,7 @@ namespace NaturalPersonsDirectory.Modules
                     return ResponseHelper.Fail<NaturalPersonResponse>();
                 }
 
-                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.NaturalPersonId == id);
+                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
 
                 if (naturalPerson == null)
                 {
@@ -253,7 +253,7 @@ namespace NaturalPersonsDirectory.Modules
                     return ResponseHelper.Fail<NaturalPersonResponse>(StatusCode.AlreadyHaveImage);
                 }
 
-                if (!ValidateFormat.ValidImage(image))
+                if (!Validator.ValidateImage(image))
                 {
                     return ResponseHelper.Fail<NaturalPersonResponse>(StatusCode.UnsupportedFileFormat);
                 }
@@ -281,12 +281,12 @@ namespace NaturalPersonsDirectory.Modules
         {
             try
             {
-                if (image != null)
+                if (image == null)
                 {
                     return ResponseHelper.Fail<NaturalPersonResponse>();
                 }
 
-                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.NaturalPersonId == id);
+                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
 
                 if (naturalPerson == null)
                 {
@@ -298,7 +298,7 @@ namespace NaturalPersonsDirectory.Modules
                     return ResponseHelper.Fail<NaturalPersonResponse>(StatusCode.NoImage);
                 }
 
-                if (!ValidateFormat.ValidImage(image))
+                if (!Validator.ValidateImage(image))
                 {
                     return ResponseHelper.Fail<NaturalPersonResponse>(StatusCode.UnsupportedFileFormat);
                 }
@@ -325,7 +325,7 @@ namespace NaturalPersonsDirectory.Modules
         {
             try
             {
-                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.NaturalPersonId == id);
+                var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
 
                 if (naturalPerson == null)
                 {

@@ -12,16 +12,16 @@ namespace NaturalPersonsDirectory.Modules
 {
     public class RelationService : IRelationService
     {
-        private readonly NaturalPersonsDirectoryDbContext _context;
+        private readonly ApplicationDbContext _context;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        public RelationService(NaturalPersonsDirectoryDbContext context)
+        public RelationService(ApplicationDbContext context)
         {
             _context = context;
         }
         public async Task<IResponse<RelationResponse>> Create(RelationRequest request)
         {
-            var relationFrom = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.NaturalPersonId == request.FromId);
-            var relationTo = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.NaturalPersonId == request.ToId);
+            var relationFrom = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == request.FromId);
+            var relationTo = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == request.ToId);
             var relationWithSameIds = await _context.Relations.SingleOrDefaultAsync(relation => relation.FromId == request.FromId && relation.ToId == request.ToId);
             var relationWithReversedIds = await _context.Relations.SingleOrDefaultAsync(relation => relation.FromId == request.ToId && relation.ToId == request.FromId);
 
@@ -31,17 +31,14 @@ namespace NaturalPersonsDirectory.Modules
                 {
                     return ResponseHelper.Fail<RelationResponse>(StatusCode.IncorrectIds);
                 }
-
-                _context.RelationIds.Add(new RelationId());
+                
                 await _context.SaveChangesAsync();
 
-                var relationId = await _context.RelationIds.OrderByDescending(id => id.Id).FirstOrDefaultAsync();
                 var relation = new Relation()
                 {
-                    RelationId = relationId.Id,
                     FromId = request.FromId,
                     ToId = request.ToId,
-                    RelationType = request.RelationType
+                    RelationType = request.RelationType.GetValueOrDefault()
                 };
 
                 _context.Relations.Add(relation);
@@ -64,7 +61,7 @@ namespace NaturalPersonsDirectory.Modules
         {
             try
             {
-                var relation = await _context.Relations.SingleOrDefaultAsync(relation => relation.RelationId == id);
+                var relation = await _context.Relations.SingleOrDefaultAsync(relation => relation.Id == id);
 
                 if (relation == null)
                 {
@@ -89,8 +86,8 @@ namespace NaturalPersonsDirectory.Modules
             {
                 var relations = await _context
                 .Relations
-                .Include(relation => relation.RelationFrom)
-                .Include(relation => relation.RelationTo)
+                .Include(relation => relation.From)
+                .Include(relation => relation.To)
                 .Skip((parameters.PageNumber - 1) * parameters.PageSize)
                 .Take(parameters.PageSize)
                 .ToListAsync();
@@ -114,9 +111,9 @@ namespace NaturalPersonsDirectory.Modules
             {
                 var relation = await _context
                 .Relations
-                .Include(relation => relation.RelationFrom)
-                .Include(relation => relation.RelationTo)
-                .FirstOrDefaultAsync(relation => relation.RelationId == id);
+                .Include(relation => relation.From)
+                .Include(relation => relation.To)
+                .FirstOrDefaultAsync(relation => relation.Id == id);
 
                 var response = new RelationResponse()
                 {
@@ -137,9 +134,9 @@ namespace NaturalPersonsDirectory.Modules
             {
                 var relation = await _context
                     .Relations
-                    .Include(relation => relation.RelationFrom)
-                    .Include(relation => relation.RelationTo)
-                    .SingleOrDefaultAsync(relation => relation.RelationId == id);
+                    .Include(relation => relation.From)
+                    .Include(relation => relation.To)
+                    .SingleOrDefaultAsync(relation => relation.Id == id);
 
                 if (relation == null)
                 {
@@ -151,7 +148,7 @@ namespace NaturalPersonsDirectory.Modules
                     return ResponseHelper.Fail<RelationResponse>();
                 }
 
-                relation.RelationType = request.RelationType;
+                relation.RelationType = request.RelationType.GetValueOrDefault();
 
                 _context.Update(relation);
                 await _context.SaveChangesAsync();

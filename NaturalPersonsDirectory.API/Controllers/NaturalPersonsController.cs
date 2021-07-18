@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace NaturalPersonsDirectory.API.Controllers
 {
-    [Route("api/NaturalPersons")]
     [ApiController]
+    [Route("api/NaturalPersons")]
     public class NaturalPersonsController : Controller
     {
         private readonly INaturalPersonService _naturalPersonService;

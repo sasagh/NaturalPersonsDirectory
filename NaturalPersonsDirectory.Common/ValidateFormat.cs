@@ -6,70 +6,57 @@ using System.Text.RegularExpressions;
 
 namespace NaturalPersonsDirectory.Common
 {
-    public static class ValidateFormat
+    public static class Validator
     {
-        public static bool ValidDate(string value)
+        public static bool ValidateDate(string value)
         {
-            return DateTime.TryParse(value, out DateTime dateTime);
+            return DateTime.TryParse(value, out _);
         }
 
-        public static bool ValidImage(IFormFile file)
+        public static bool ValidateImage(IFormFile file)
         {
-            if(file != null)
+            if (file == null)
             {
-                var fileExtension = file.FileName.Split('.').Last();
+                return false;
+            }
 
-                foreach (var format in AllowedFileFormats)
+            var fileExtension = file.FileName.Split('.').Last();
+
+            return AllowedFileFormats.Any(format => fileExtension == format);
+        }
+
+        public static bool ValidateContactInformation(string contactInformation)
+        {
+            if (string.IsNullOrEmpty(contactInformation))
+            {
+                return false;
+            }
+
+            const string phoneNumberPattern = @"^(\+995)[\s-]?[5]\d{1,3}[\s-]?\d{1,3}[\s-]?\d{1,3}[\s-]?\d{1,3}$";
+            const string emailPattern = @"^([\w.-]+)@([\w-]+)((.(\w){2,3})+)$";
+
+            var information = contactInformation.Split(',');
+
+            foreach (var item in information)
+            {
+                var trimmedItem = item.Trim();
+
+                if (!Regex.Match(trimmedItem, phoneNumberPattern, RegexOptions.IgnoreCase).Success &&
+                    !Regex.Match(trimmedItem, emailPattern, RegexOptions.IgnoreCase).Success)
                 {
-                    if (fileExtension == format)
-                    {
-                        return true;
-                    }
+                    return false;
                 }
             }
 
-            return false;
+            return true;
         }
 
-        public static bool ValidContactInformations(string contactInformations)
+        public static bool ValidateOrder(string value)
         {
-            if(contactInformations != null)
-            {
-                string phoneNumberPattern = @"^(\+995)[\s-]?[5]\d{1,3}[\s-]?\d{1,3}[\s-]?\d{1,3}[\s-]?\d{1,3}$";
-                string emailPattern = @"^([\w.-]+)@([\w-]+)((.(\w){2,3})+)$";
-
-                var informations = contactInformations.Split(',');
-
-                foreach (var item in informations)
-                {
-                    var trimmedItem = item.Trim();
-
-                    if (!Regex.Match(trimmedItem, phoneNumberPattern, RegexOptions.IgnoreCase).Success &&
-                       !Regex.Match(trimmedItem, emailPattern, RegexOptions.IgnoreCase).Success)
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
-            }
-            return false;
+            return AllowedOrders.Any(order => value == order);
         }
 
-        public static bool ValidOrder(string value)
-        {
-            foreach (var order in AllowedOrders)
-            {
-                if (value == order)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static List<string> AllowedFileFormats = new List<string>()
+        private static readonly List<string> AllowedFileFormats = new List<string>()
         {
             "jpg",
             "jpeg",
@@ -77,7 +64,8 @@ namespace NaturalPersonsDirectory.Common
             "tiff",
             "gif"
         };
-        private static List<string> AllowedOrders = new List<string>()
+
+        private static readonly List<string> AllowedOrders = new List<string>()
         {
             "NaturalPersonId",
             "FirstNameEn",

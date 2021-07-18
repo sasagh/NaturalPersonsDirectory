@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using NaturalPersonsDirectory.Db;
 
 namespace NaturalPersonsDirectory.Db.Migrations
 {
-    [DbContext(typeof(NaturalPersonsDirectoryDbContext))]
-    partial class NaturalPersonsDirectoryDbContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(ApplicationDbContext))]
+    [Migration("20210718165440_InitialMigration")]
+    partial class InitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,7 +23,7 @@ namespace NaturalPersonsDirectory.Db.Migrations
 
             modelBuilder.Entity("NaturalPersonsDirectory.Models.NaturalPerson", b =>
                 {
-                    b.Property<int>("NaturalPersonId")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
@@ -32,13 +34,13 @@ namespace NaturalPersonsDirectory.Db.Migrations
                     b.Property<DateTime>("Birthday")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("ContactInformations")
+                    b.Property<string>("ContactInformation")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("FirstNameEn")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("FirstNameGE")
+                    b.Property<string>("FirstNameGe")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImagePath")
@@ -53,62 +55,45 @@ namespace NaturalPersonsDirectory.Db.Migrations
                     b.Property<string>("PassportNumber")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("NaturalPersonId");
+                    b.HasKey("Id");
 
                     b.ToTable("NaturalPersons");
                 });
 
             modelBuilder.Entity("NaturalPersonsDirectory.Models.Relation", b =>
                 {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
                     b.Property<int>("FromId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RelationType")
                         .HasColumnType("int");
 
                     b.Property<int>("ToId")
                         .HasColumnType("int");
 
-                    b.Property<int>("RelationId")
-                        .HasColumnType("int");
+                    b.HasKey("Id");
 
-                    b.Property<string>("RelationType")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("FromId", "ToId");
-
-                    b.HasIndex("RelationId")
-                        .IsUnique();
+                    b.HasIndex("FromId");
 
                     b.HasIndex("ToId");
 
                     b.ToTable("Relations");
                 });
 
-            modelBuilder.Entity("NaturalPersonsDirectory.Models.RelationId", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.HasKey("Id");
-
-                    b.ToTable("RelationIds");
-                });
-
             modelBuilder.Entity("NaturalPersonsDirectory.Models.Relation", b =>
                 {
-                    b.HasOne("NaturalPersonsDirectory.Models.NaturalPerson", "RelationFrom")
+                    b.HasOne("NaturalPersonsDirectory.Models.NaturalPerson", "From")
                         .WithMany()
                         .HasForeignKey("FromId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
-                    b.HasOne("NaturalPersonsDirectory.Models.RelationId", "RelationIdRef")
-                        .WithOne("Relation")
-                        .HasForeignKey("NaturalPersonsDirectory.Models.Relation", "RelationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("NaturalPersonsDirectory.Models.NaturalPerson", "RelationTo")
+                    b.HasOne("NaturalPersonsDirectory.Models.NaturalPerson", "To")
                         .WithMany()
                         .HasForeignKey("ToId")
                         .OnDelete(DeleteBehavior.NoAction)

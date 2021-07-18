@@ -10,7 +10,7 @@ namespace NaturalPersonsDirectory.Modules
     {
         public int FromId { get; set; }
         public int ToId { get; set; }
-        public string RelationType { get; set; }
+        public RelationType? RelationType { get; set; }
     }
 
     public class RelationResponse
@@ -22,14 +22,12 @@ namespace NaturalPersonsDirectory.Modules
             {
                 if (_count == null)
                 {
-                    return Relations == null ? 0 : Relations.Count();
+                    return Relations?.Count() ?? 0;
                 }
-                else
-                {
-                    return _count.Value;
-                }
+
+                return _count.Value;
             }
-            set { _count = value; }
+            set => _count = value;
         }
         public IEnumerable<Relation> Relations { get; set; }
     }
@@ -40,7 +38,7 @@ namespace NaturalPersonsDirectory.Modules
         {
             RuleFor(request => request.FromId).NotEmpty().WithMessage("From id is required");
             RuleFor(request => request.ToId).NotEmpty().WithMessage("To id is required");
-            RuleFor(request => request.RelationType).NotEmpty().IsEnumName(typeof(RelationType)).WithMessage("Relation type is incorrect");
+            RuleFor(request => request.RelationType).IsInEnum().WithMessage("Relation type is incorrect");
         }
     }
 }

@@ -8,7 +8,8 @@ namespace NaturalPersonsDirectory.Db.Configurations
     {
         public void Configure(EntityTypeBuilder<NaturalPerson> builder)
         {
-            builder.HasKey(naturalPerson => naturalPerson.NaturalPersonId);
+            builder.HasKey(naturalPerson => naturalPerson.Id);
+            builder.Property(naturalPerson => naturalPerson.Birthday).HasColumnType("date");
         }
     }
 }

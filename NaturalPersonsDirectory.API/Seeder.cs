@@ -15,94 +15,85 @@ namespace NaturalPersonsDirectory.API
         {
             using (var serviceScope = app.ApplicationServices.GetService<IServiceScopeFactory>().CreateScope())
             {
-                var _context = serviceScope.ServiceProvider.GetService<NaturalPersonsDirectoryDbContext>();
+                var context = serviceScope.ServiceProvider.GetService<ApplicationDbContext>();
 
-                _context.Database.Migrate();
+                context.Database.Migrate();
 
                 var person1 = new NaturalPerson()
                 {
                     FirstNameEn = "Bidzina",
-                    FirstNameGE = "ბიძინა",
+                    FirstNameGe = "ბიძინა",
                     LastNameEn = "Tabagari",
                     LastNameGe = "თაბაგარი",
                     Address = "Tbilisi",
                     PassportNumber = "98765432111",
-                    ContactInformations = "+995-555-111-222,bidzina.tabagari@gmail.com",
+                    ContactInformation = "+995-555-111-222,bidzina.tabagari@gmail.com",
                     Birthday = DateTime.Now.Date.AddYears(-70)
                 };
 
                 var person2 = new NaturalPerson()
                 {
                     FirstNameEn = "Guram",
-                    FirstNameGE = "გურამ",
+                    FirstNameGe = "გურამ",
                     LastNameEn = "Jinoria",
                     LastNameGe = "ჯინორია",
                     Address = "Moscow",
                     PassportNumber = "12345678901",
-                    ContactInformations = "guram.jinoria@mail.ru",
+                    ContactInformation = "guram.jinoria@mail.ru",
                     Birthday = DateTime.Now.Date.AddYears(-65)
                 };
 
                 var person3 = new NaturalPerson()
                 {
                     FirstNameEn = "Ucha",
-                    FirstNameGE = "უჩა",
+                    FirstNameGe = "უჩა",
                     LastNameEn = "Zeragia",
                     LastNameGe = "ზერაგია",
                     Address = "Unknown",
                     PassportNumber = "32112332123",
-                    ContactInformations = "Unknown",
+                    ContactInformation = "Unknown",
                     Birthday = DateTime.Now.Date.AddYears(-67)
                 };
 
-                if (!_context.NaturalPersons.Any(naturalPerson => naturalPerson.PassportNumber == person1.PassportNumber))
+                if (!context.NaturalPersons.Any(naturalPerson => naturalPerson.PassportNumber == person1.PassportNumber))
                 {
-                    _context.NaturalPersons.Add(person1);
+                    context.NaturalPersons.Add(person1);
                 }
 
-                if (!_context.NaturalPersons.Any(naturalPerson => naturalPerson.PassportNumber == person2.PassportNumber))
+                if (!context.NaturalPersons.Any(naturalPerson => naturalPerson.PassportNumber == person2.PassportNumber))
                 {
-                    _context.NaturalPersons.Add(person2);
+                    context.NaturalPersons.Add(person2);
                 }
 
-                if (!_context.NaturalPersons.Any(naturalPerson => naturalPerson.PassportNumber == person3.PassportNumber))
+                if (!context.NaturalPersons.Any(naturalPerson => naturalPerson.PassportNumber == person3.PassportNumber))
                 {
-                    _context.NaturalPersons.Add(person3);
+                    context.NaturalPersons.Add(person3);
                 }
 
-                _context.SaveChanges();
+                context.SaveChanges();
 
-                if (!_context.RelationIds.Any())
-                {
-                    _context.RelationIds.Add(new RelationId());
-                    _context.RelationIds.Add(new RelationId());
-                    _context.SaveChanges();
-                }
+                var naturalPersons = context.NaturalPersons.ToList();
 
-                var naturalPersons = _context.NaturalPersons.ToList();
-
-                if (!_context.Relations.Any() && naturalPersons.Count >= 3)
+                if (!context.Relations.Any() && naturalPersons.Count >= 3)
                 {
                     var relation1 = new Relation()
                     {
-                        RelationId = _context.RelationIds.FirstOrDefault().Id,
-                        FromId = naturalPersons[0].NaturalPersonId,
-                        ToId = naturalPersons[1].NaturalPersonId,
-                        RelationType = RelationType.Acquaintance.ToString()
+                        FromId = naturalPersons[0].Id,
+                        ToId = naturalPersons[1].Id,
+                        RelationType = RelationType.Acquaintance
                     };
 
                     var relation2 = new Relation()
                     {
-                        RelationId = relation1.RelationId+1,
-                        FromId = naturalPersons[1].NaturalPersonId,
-                        ToId = naturalPersons[2].NaturalPersonId,
-                        RelationType = RelationType.Employee.ToString()
+                        FromId = naturalPersons[1].Id,
+                        ToId = naturalPersons[2].Id,
+                        RelationType = RelationType.Employee
                     };
 
-                    _context.Relations.Add(relation1);
-                    _context.Relations.Add(relation2);
+                    context.Relations.Add(relation1);
+                    context.Relations.Add(relation2);
 
-                    _context.SaveChanges();
+                    context.SaveChanges();
                 }
             }
         }
