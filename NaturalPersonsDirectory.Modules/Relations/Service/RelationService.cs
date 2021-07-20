@@ -80,7 +80,7 @@ namespace NaturalPersonsDirectory.Modules
             }
         }
 
-        public async Task<IResponse<RelationResponse>> Get(PaginationParameters parameters)
+        public async Task<IResponse<RelationResponse>> GetAll(PaginationParameters parameters)
         {
             try
             {

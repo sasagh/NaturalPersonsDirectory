@@ -18,7 +18,7 @@ namespace NaturalPersonsDirectory.API.Controllers
         [HttpGet]
         public async Task<IActionResult> GetNaturalPersons([FromQuery] PaginationParameters parameters)
         {
-            var response = await _naturalPersonService.Get(parameters);
+            var response = await _naturalPersonService.GetAll(parameters);
 
             return Ok(response);
         }

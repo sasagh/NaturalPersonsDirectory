@@ -20,7 +20,7 @@ namespace NaturalPersonsDirectory.API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Relation>>> GetRelations([FromQuery] PaginationParameters parameters)
         {
-            var response = await _relationService.Get(parameters);
+            var response = await _relationService.GetAll(parameters);
 
             return Ok(response);
         }

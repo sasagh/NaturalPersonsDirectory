@@ -16,7 +16,6 @@
         NoImage,
         IncorrectIds,
         UnsupportedFileFormat,
-        AlreadyHaveImage,
-        DoesNotHaveImage,
+        AlreadyHaveImage
     }
 }

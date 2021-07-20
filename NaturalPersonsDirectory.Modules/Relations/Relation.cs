@@ -15,7 +15,7 @@ namespace NaturalPersonsDirectory.Modules
 
     public class RelationResponse
     {
-        private int? _count = default;
+        private int? _count;
         public int Count
         {
             get

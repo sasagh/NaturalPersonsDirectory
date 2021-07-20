@@ -8,12 +8,12 @@ namespace NaturalPersonsDirectory.Common
 {
     public static class Validator
     {
-        public static bool ValidateDate(string value)
+        public static bool IsValidDate(string value)
         {
             return DateTime.TryParse(value, out _);
         }
 
-        public static bool ValidateImage(IFormFile file)
+        public static bool IsValidImage(IFormFile file)
         {
             if (file == null)
             {
@@ -25,7 +25,7 @@ namespace NaturalPersonsDirectory.Common
             return AllowedFileFormats.Any(format => fileExtension == format);
         }
 
-        public static bool ValidateContactInformation(string contactInformation)
+        public static bool IsValidContactInformation(string contactInformation)
         {
             if (string.IsNullOrEmpty(contactInformation))
             {
@@ -51,7 +51,7 @@ namespace NaturalPersonsDirectory.Common
             return true;
         }
 
-        public static bool ValidateOrder(string value)
+        public static bool IsValidOrder(string value)
         {
             return AllowedOrders.Any(order => value == order);
         }

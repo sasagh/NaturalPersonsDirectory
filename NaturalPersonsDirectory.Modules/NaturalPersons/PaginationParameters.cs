@@ -2,25 +2,19 @@
 {
     public class PaginationParameters
     {
-        const int maxPageSize = 50;
+        private const int MaxPageSize = 50;
         public int PageNumber { get; set; } = 1;
         private int _pageSize = 10;
         public int PageSize
         {
-            get
-            {
-                return _pageSize;
-            }
-            set
-            {
-                _pageSize = (value > maxPageSize) ? maxPageSize : value;
-            }
+            get => _pageSize;
+            set => _pageSize = (value > MaxPageSize) ? MaxPageSize : value;
         }
-        private string _orderBy = default;
+        private string _orderBy;
         public string OrderBy
         {
-            get { return _orderBy ?? "NaturalPersonId"; }
-            set { _orderBy = value; }
+            get => _orderBy ?? "NaturalPersonId";
+            set => _orderBy = value;
         }
     }
 }
