@@ -16,6 +16,7 @@
         NoImage,
         IncorrectIds,
         UnsupportedFileFormat,
-        AlreadyHaveImage
+        AlreadyHaveImage,
+        RelationNotExists
     }
 }

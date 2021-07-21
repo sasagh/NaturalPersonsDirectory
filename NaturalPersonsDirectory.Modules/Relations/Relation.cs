@@ -2,7 +2,9 @@
 using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Models;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net.Cache;
 
 namespace NaturalPersonsDirectory.Modules
 {
@@ -29,7 +31,8 @@ namespace NaturalPersonsDirectory.Modules
             }
             set => _count = value;
         }
-        public IEnumerable<Relation> Relations { get; set; }
+        
+        public IEnumerable<Relation> Relations { get; set; } = new Collection<Relation>();
     }
 
     public class RelationRequestValidator : AbstractValidator<RelationRequest>

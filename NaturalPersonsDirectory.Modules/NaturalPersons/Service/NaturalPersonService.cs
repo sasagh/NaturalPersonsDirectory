@@ -25,7 +25,10 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> Create(NaturalPersonRequest request)
         {
-            var naturalPersonWithSamePassportNumber = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.PassportNumber == request.PassportNumber);
+            var naturalPersonWithSamePassportNumber = 
+                await _context
+                    .NaturalPersons
+                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.PassportNumber == request.PassportNumber);
 
             if (naturalPersonWithSamePassportNumber != null)
             {
@@ -57,14 +60,21 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> Delete(int id)
         {
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+            var naturalPerson =
+                await _context
+                    .NaturalPersons
+                    .SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
 
             if (naturalPerson == null)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relations = await _context.Relations.Where(relation => relation.FromId == naturalPerson.Id || relation.ToId == naturalPerson.Id).ToListAsync();
+            var relations = 
+                await _context
+                    .Relations
+                    .Where(relation => relation.FromId == naturalPerson.Id || relation.ToId == naturalPerson.Id)
+                    .ToListAsync();
 
             if (relations.Any())
             {
@@ -77,12 +87,7 @@ namespace NaturalPersonsDirectory.Modules
             _context.NaturalPersons.Remove(naturalPerson);
             await _context.SaveChangesAsync();
 
-            var response = new NaturalPersonResponse()
-            {
-                NaturalPersons = new List<NaturalPerson>()
-            };
-
-            return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete, response);
+            return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete, new NaturalPersonResponse());
         }
 
         public async Task<Response<NaturalPersonResponse>> GetAll(PaginationParameters parameters)
@@ -106,7 +111,7 @@ namespace NaturalPersonsDirectory.Modules
 
             var response = new NaturalPersonResponse()
             {
-                NaturalPersons = naturalPersons.Any() ? naturalPersons : new List<NaturalPerson>()
+                NaturalPersons = naturalPersons
             };
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Success, response);
@@ -114,7 +119,10 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> GetById(int id)
         {
-            var naturalPerson = await _context.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+            var naturalPerson = 
+                await _context
+                    .NaturalPersons
+                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
 
             if (naturalPerson == null)
             {
@@ -164,15 +172,26 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelatedPersonsResponse>> GetRelatedPersons(int id)
         {
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+            var naturalPerson = 
+                await _context
+                    .NaturalPersons
+                    .SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
 
             if (naturalPerson == null)
             {
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relationsFrom = await _context.Relations.Where(relation => relation.FromId == id).Include(relation => relation.To).ToListAsync();
-            var relationsTo = await _context.Relations.Where(relation => relation.ToId == id).Include(relation => relation.From).ToListAsync();
+            var relationsFrom =
+                await _context
+                    .Relations
+                    .Where(relation => relation.FromId == id).Include(relation => relation.To)
+                    .ToListAsync();
+            var relationsTo =
+                await _context
+                    .Relations
+                    .Where(relation => relation.ToId == id).Include(relation => relation.From)
+                    .ToListAsync();
 
             var relatedPersons = new List<RelatedPerson>();
 
@@ -207,7 +226,7 @@ namespace NaturalPersonsDirectory.Modules
             
             var response = new RelatedPersonsResponse()
             {
-                RelatedPersons = relatedPersons.Any() ? relatedPersons : new List<RelatedPerson>()
+                RelatedPersons = relatedPersons
             };
 
             return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.Success, response);
@@ -252,7 +271,7 @@ namespace NaturalPersonsDirectory.Modules
 
         private async Task<Response<NaturalPersonResponse>> GetAddOrUpdateImageResponse(int id, IFormFile file, StatusCode statusCodeToReturnIfSuccess)
         {
-            if (file == null || !Validator.IsValidImage(file))
+            if (!Validator.IsValidImage(file))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.UnsupportedFileFormat);
             }
@@ -269,7 +288,7 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
 
-            naturalPerson.ImagePath = UploadImageAndGetPath(naturalPerson, file);
+            naturalPerson.ImagePath = UploadImageAndGetPath(file);
 
             _context.Update(naturalPerson);
             await _context.SaveChangesAsync();
@@ -282,7 +301,7 @@ namespace NaturalPersonsDirectory.Modules
             return ResponseHelper<NaturalPersonResponse>.GetResponse(statusCodeToReturnIfSuccess, response);
         }
         
-        private static string UploadImageAndGetPath(NaturalPerson naturalPerson, IFormFile image)
+        private static string UploadImageAndGetPath(IFormFile image)
         {
             var folderName = Path.Combine(Environment.CurrentDirectory, "Images\\");
 

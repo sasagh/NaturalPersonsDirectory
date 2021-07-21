@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace NaturalPersonsDirectory.Modules
 {
-    public interface IRelationService : IService<RelationRequest, IResponse<RelationResponse>>
+    public interface IRelationService : IService<RelationRequest, Response<RelationResponse>>
     {
     }
 }

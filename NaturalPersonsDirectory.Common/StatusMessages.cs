@@ -23,7 +23,8 @@ namespace NaturalPersonsDirectory.Common
             { StatusCode.ChangingPassportNumberNotAllowed, "Changing passport number is not allowed"},
             { StatusCode.IncorrectIds, "Incorrect id(s)."},
             { StatusCode.UnsupportedFileFormat, "Unsupported file format."},
-            { StatusCode.AlreadyHaveImage, "Natural person already has an image."}
+            { StatusCode.AlreadyHaveImage, "Natural person already has an image."},
+            { StatusCode.RelationNotExists, "Relation between given ids does not exist. "}
         };
     }
 }
