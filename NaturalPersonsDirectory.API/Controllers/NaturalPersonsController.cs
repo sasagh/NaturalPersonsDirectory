@@ -16,75 +16,75 @@ namespace NaturalPersonsDirectory.API.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetNaturalPersons([FromQuery] PaginationParameters parameters)
+        public async Task<ActionResult<NaturalPersonResponse>> GetNaturalPersons([FromQuery] PaginationParameters parameters)
         {
             var response = await _naturalPersonService.GetAll(parameters);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetNaturalPerson(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<NaturalPersonResponse>> GetNaturalPerson(int id)
         {
             var response = await _naturalPersonService.GetById(id);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutNaturalPerson(int id, [FromBody] NaturalPersonRequest request)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<NaturalPersonResponse>> PutNaturalPerson(int id, [FromBody] NaturalPersonRequest request)
         {
             var response = await _naturalPersonService.Update(id, request);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
         [HttpPost]
-        public async Task<IActionResult> PostNaturalPerson([FromBody] NaturalPersonRequest request)
+        public async Task<ActionResult<NaturalPersonResponse>> PostNaturalPerson([FromBody] NaturalPersonRequest request)
         {
             var response = await _naturalPersonService.Create(request);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteNaturalPerson(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<NaturalPersonResponse>> DeleteNaturalPerson(int id)
         {
             var response = await _naturalPersonService.Delete(id);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpGet("{id}/relations")]
-        public async Task<IActionResult> GetRelatedPersons(int id)
+        [HttpGet("{id:int}/relations")]
+        public async Task<ActionResult<RelatedPersonsResponse>> GetRelatedPersons(int id)
         {
             var response = await _naturalPersonService.GetRelatedPersons(id);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpPost("{id}/image")]
-        public async Task<IActionResult> AddImage(int id, IFormFile image)
+        [HttpPost("{id:int}/image")]
+        public async Task<ActionResult<NaturalPersonResponse>> AddImage(int id, IFormFile image)
         {
             var result = await _naturalPersonService.AddImage(id, image);
 
-            return Ok(result);
+            return result.MatchActionResult();
         }
 
-        [HttpPut("{id}/image")]
-        public async Task<IActionResult> UpdateImage(int id, IFormFile image)
+        [HttpPut("{id:int}/image")]
+        public async Task<ActionResult<NaturalPersonResponse>> UpdateImage(int id, IFormFile image)
         {
             var result = await _naturalPersonService.UpdateImage(id, image);
 
-            return Ok(result);
+            return result.MatchActionResult();
         }
 
-        [HttpDelete("{id}/image")]
-        public async Task<IActionResult> DeleteImage(int id)
+        [HttpDelete("{id:int}/image")]
+        public async Task<ActionResult<NaturalPersonResponse>> DeleteImage(int id)
         {
             var result = await _naturalPersonService.DeleteImage(id);
 
-            return Ok(result);
+            return result.MatchActionResult();
         }
     }
 }

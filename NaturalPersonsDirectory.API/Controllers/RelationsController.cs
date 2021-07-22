@@ -18,43 +18,43 @@ namespace NaturalPersonsDirectory.API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Relation>>> GetRelations([FromQuery] PaginationParameters parameters)
+        public async Task<ActionResult<RelationResponse>> GetRelations([FromQuery] PaginationParameters parameters)
         {
             var response = await _relationService.GetAll(parameters);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Relation>> GetRelation(int id)
+        [HttpGet("{id:int}")]
+        public async Task<ActionResult<RelationResponse>> GetRelation(int id)
         {
             var response = await _relationService.GetById(id);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutRelation(int id,[FromBody] RelationRequest request)
+        [HttpPut("{id:int}")]
+        public async Task<ActionResult<RelationResponse>> PutRelation(int id,[FromBody] RelationRequest request)
         {
             var response = await _relationService.Update(id, request);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
         [HttpPost]
-        public async Task<ActionResult<Relation>> PostRelation([FromBody] RelationRequest request)
+        public async Task<ActionResult<RelationResponse>> PostRelation([FromBody] RelationRequest request)
         {
             var response = await _relationService.Create(request);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Relation>> DeleteRelation(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<ActionResult<RelationResponse>> DeleteRelation(int id)
         {
             var response = await _relationService.Delete(id);
 
-            return Ok(response);
+            return response.MatchActionResult();
         }
     }
 }

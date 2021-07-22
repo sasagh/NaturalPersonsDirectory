@@ -22,7 +22,7 @@ namespace NaturalPersonsDirectory.Common
 
             var fileExtension = file.FileName.Split('.').Last();
 
-            return AllowedFileFormats.Any(format => fileExtension == format);
+            return AllowedImageExtensions.Any(format => fileExtension == format);
         }
 
         public static bool IsValidContactInformation(string contactInformation)
@@ -53,10 +53,12 @@ namespace NaturalPersonsDirectory.Common
 
         public static bool IsValidOrder(string value)
         {
-            return AllowedOrders.Any(order => value == order);
+            return AllowedOrders
+                .Any(order => 
+                    string.Equals(order, value, StringComparison.CurrentCultureIgnoreCase));
         }
 
-        private static readonly List<string> AllowedFileFormats = new List<string>()
+        private static readonly List<string> AllowedImageExtensions = new List<string>()
         {
             "jpg",
             "jpeg",

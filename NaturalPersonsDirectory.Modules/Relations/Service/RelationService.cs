@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace NaturalPersonsDirectory.Modules
 {
@@ -20,6 +21,7 @@ namespace NaturalPersonsDirectory.Modules
         }
         public async Task<Response<RelationResponse>> Create(RelationRequest request)
         {
+            //TODO add dapper
             var relationFrom =
                 await _context
                     .NaturalPersons
@@ -64,6 +66,7 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelationResponse>> Delete(int id)
         {
+            //
             var relation = await _context.Relations.SingleOrDefaultAsync(relation => relation.Id == id);
 
             if (relation == null)
