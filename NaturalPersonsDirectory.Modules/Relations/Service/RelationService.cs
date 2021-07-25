@@ -21,7 +21,19 @@ namespace NaturalPersonsDirectory.Modules
         }
         public async Task<Response<RelationResponse>> Create(RelationRequest request)
         {
-            //TODO add dapper
+            var relationWithGivenIds = await _context
+                .Relations
+                .SingleOrDefaultAsync(relation => 
+                    relation.FromId == request.FromId && relation.ToId == request.ToId 
+                    || relation.ToId == request.FromId && relation.FromId == request.ToId);
+
+            var relationWithGivenIdsExists = relationWithGivenIds != null;
+
+            if (relationWithGivenIdsExists)
+            {
+                return ResponseHelper<RelationResponse>.GetResponse(StatusCode.RelationBetweenGivenIdsExists);
+            }
+
             var relationFrom =
                 await _context
                     .NaturalPersons
@@ -30,21 +42,13 @@ namespace NaturalPersonsDirectory.Modules
                 await _context
                     .NaturalPersons
                     .FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == request.ToId);
-            var relationWithSameIds =
-                await _context
-                    .Relations
-                    .SingleOrDefaultAsync(relation => relation.FromId == request.FromId && relation.ToId == request.ToId);
-            var relationWithReversedIds =
-                await _context
-                    .Relations
-                    .SingleOrDefaultAsync(relation => relation.FromId == request.ToId && relation.ToId == request.FromId);
 
-            if (!(relationFrom != null && relationTo != null && request.FromId != request.ToId && relationWithSameIds == null && relationWithReversedIds == null))
+            var bothPersonExist = relationFrom != null && relationTo != null;
+
+            if (!bothPersonExist)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IncorrectIds);
             }
-                
-            await _context.SaveChangesAsync();
 
             var relation = new Relation()
             {
@@ -66,7 +70,6 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelationResponse>> Delete(int id)
         {
-            //
             var relation = await _context.Relations.SingleOrDefaultAsync(relation => relation.Id == id);
 
             if (relation == null)
@@ -137,7 +140,9 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            if(!(relation.FromId == request.FromId && relation.ToId == request.ToId))
+            var relationBetweenGivenIdsExists = relation.FromId == request.FromId && relation.ToId == request.ToId;
+            
+            if(!relationBetweenGivenIdsExists)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.RelationNotExists);
             }

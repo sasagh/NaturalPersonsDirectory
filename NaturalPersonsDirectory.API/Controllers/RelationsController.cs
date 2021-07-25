@@ -3,6 +3,7 @@ using NaturalPersonsDirectory.Models;
 using NaturalPersonsDirectory.Modules;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 
 namespace NaturalPersonsDirectory.API.Controllers
 {
@@ -18,6 +19,8 @@ namespace NaturalPersonsDirectory.API.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RelationResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RelationResponse>> GetRelations([FromQuery] PaginationParameters parameters)
         {
             var response = await _relationService.GetAll(parameters);
@@ -26,6 +29,8 @@ namespace NaturalPersonsDirectory.API.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RelationResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RelationResponse>> GetRelation(int id)
         {
             var response = await _relationService.GetById(id);
@@ -34,6 +39,8 @@ namespace NaturalPersonsDirectory.API.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RelationResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<RelationResponse>> PutRelation(int id,[FromBody] RelationRequest request)
         {
             var response = await _relationService.Update(id, request);
@@ -42,6 +49,8 @@ namespace NaturalPersonsDirectory.API.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(RelationResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<RelationResponse>> PostRelation([FromBody] RelationRequest request)
         {
             var response = await _relationService.Create(request);
@@ -50,6 +59,8 @@ namespace NaturalPersonsDirectory.API.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<RelationResponse>> DeleteRelation(int id)
         {
             var response = await _relationService.Delete(id);

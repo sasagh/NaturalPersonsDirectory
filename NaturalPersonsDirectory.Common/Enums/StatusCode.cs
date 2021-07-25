@@ -3,6 +3,7 @@
     public enum StatusCode
     {
         Success,
+        Create,
         Delete,
         Update,
         NotFound,
@@ -17,6 +18,7 @@
         IncorrectIds,
         UnsupportedFileFormat,
         AlreadyHaveImage,
-        RelationNotExists
+        RelationNotExists,
+        RelationBetweenGivenIdsExists
     }
 }

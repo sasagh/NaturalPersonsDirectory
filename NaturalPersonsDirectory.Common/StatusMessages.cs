@@ -10,6 +10,7 @@ namespace NaturalPersonsDirectory.Common
         private static readonly Dictionary<StatusCode, string> Messages = new Dictionary<StatusCode, string>()
         {
             { StatusCode.Success, "Operation completed successfully."},
+            { StatusCode.Create, "Created successfully."},
             { StatusCode.Delete, "Item deleted successfully."},
             { StatusCode.Update, "Item updated successfully."},
             { StatusCode.NotFound, "Not found."},
@@ -24,7 +25,8 @@ namespace NaturalPersonsDirectory.Common
             { StatusCode.IncorrectIds, "Incorrect id(s)."},
             { StatusCode.UnsupportedFileFormat, "Unsupported file format."},
             { StatusCode.AlreadyHaveImage, "Natural person already has an image."},
-            { StatusCode.RelationNotExists, "Relation between given ids does not exist. "}
+            { StatusCode.RelationNotExists, "Relation between given ids does not exist. "},
+            { StatusCode.RelationBetweenGivenIdsExists, "Relation between given ids already exists. "}
         };
     }
 }

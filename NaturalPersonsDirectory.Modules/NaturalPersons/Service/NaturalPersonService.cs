@@ -28,7 +28,7 @@ namespace NaturalPersonsDirectory.Modules
             var naturalPersonWithSamePassportNumber = 
                 await _context
                     .NaturalPersons
-                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.PassportNumber == request.PassportNumber);
+                    .FirstOrDefaultAsync(person => person.PassportNumber == request.PassportNumber);
 
             if (naturalPersonWithSamePassportNumber != null)
             {
@@ -55,7 +55,7 @@ namespace NaturalPersonsDirectory.Modules
                 NaturalPersons = new List<NaturalPerson>() { naturalPerson }
             };
 
-            return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Success, response);
+            return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Create, response);
         }
 
         public async Task<Response<NaturalPersonResponse>> Delete(int id)
@@ -63,26 +63,20 @@ namespace NaturalPersonsDirectory.Modules
             var naturalPerson =
                 await _context
                     .NaturalPersons
-                    .SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+                    .SingleOrDefaultAsync(person => person.Id == id);
 
             if (naturalPerson == null)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relations = 
+            var relations =
                 await _context
                     .Relations
                     .Where(relation => relation.FromId == naturalPerson.Id || relation.ToId == naturalPerson.Id)
                     .ToListAsync();
-
-            if (relations.Any())
-            {
-                foreach (var relation in relations)
-                {
-                    _context.Relations.Remove(relation);
-                }
-            }
+            
+            _context.RemoveRange(relations);
 
             _context.NaturalPersons.Remove(naturalPerson);
             await _context.SaveChangesAsync();
@@ -92,7 +86,7 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> GetAll(PaginationParameters parameters)
         {
-            var prop = typeof(NaturalPerson).GetProperty(parameters.OrderBy);
+            var orderProperty = typeof(NaturalPerson).GetProperty(parameters.OrderBy);
             var naturalPersons = await _context
                 .NaturalPersons
                 .Skip((parameters.PageNumber - 1) * parameters.PageSize)
@@ -104,9 +98,9 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
             }
             
-            if (Validator.IsValidOrder(parameters.OrderBy) && prop != null)
+            if (Validator.IsValidOrder(parameters.OrderBy) && orderProperty != null)
             {
-                naturalPersons = naturalPersons.OrderBy(property => prop.GetValue(property, null)).ToList();
+                naturalPersons = naturalPersons.OrderBy(property => orderProperty.GetValue(property, null)).ToList();
             }
 
             var response = new NaturalPersonResponse()
@@ -122,7 +116,7 @@ namespace NaturalPersonsDirectory.Modules
             var naturalPerson = 
                 await _context
                     .NaturalPersons
-                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+                    .FirstOrDefaultAsync(person => person.Id == id);
 
             if (naturalPerson == null)
             {
@@ -175,49 +169,32 @@ namespace NaturalPersonsDirectory.Modules
             var naturalPerson = 
                 await _context
                     .NaturalPersons
-                    .SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+                    .SingleOrDefaultAsync(person => person.Id == id);
 
             if (naturalPerson == null)
             {
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relationsFrom =
-                await _context
+            var relationsTo = await 
+                _context
                     .Relations
-                    .Where(relation => relation.FromId == id).Include(relation => relation.To)
+                    .Where(relation => relation.FromId == id)
+                    .Include(relation => relation.To)
+                    .Select(relation => GetRelatedPerson(relation.From, relation.RelationType))
                     .ToListAsync();
-            var relationsTo =
-                await _context
+
+            var relationsFrom = await 
+                _context
                     .Relations
-                    .Where(relation => relation.ToId == id).Include(relation => relation.From)
+                    .Where(relation => relation.ToId == id)
+                    .Include(relation => relation.From)
+                    .Select(relation => GetRelatedPerson(relation.From, relation.RelationType))
                     .ToListAsync();
 
             var relatedPersons = new List<RelatedPerson>();
-
-            if (relationsFrom.Any())
-            {
-                foreach (var relation in relationsFrom)
-                {
-                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.To);
-                    var relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
-                    relatedPerson.RelationType = relation.RelationType;
-
-                    relatedPersons.Add(relatedPerson);
-                }
-            }
-
-            if (relationsTo.Any())
-            {
-                foreach (var relation in relationsTo)
-                {
-                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.From);
-                    var relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
-                    relatedPerson.RelationType = relation.RelationType;
-
-                    relatedPersons.Add(relatedPerson);
-                }
-            }
+            relatedPersons.AddRange(relationsTo);
+            relatedPersons.AddRange(relationsFrom);
             
             if (!relatedPersons.Any())
             {
@@ -283,7 +260,7 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            if (string.IsNullOrWhiteSpace(naturalPerson.ImagePath))
+            if (string.IsNullOrWhiteSpace(naturalPerson.ImagePath) && statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
@@ -305,7 +282,7 @@ namespace NaturalPersonsDirectory.Modules
         {
             var folderName = Path.Combine(Environment.CurrentDirectory, "Images\\");
 
-            var fileName = new Guid().ToString();
+            var fileName = Guid.NewGuid();
 
             var filePath = folderName + fileName;
 
@@ -321,6 +298,15 @@ namespace NaturalPersonsDirectory.Modules
             }
 
             return filePath;
+        }
+        
+        private static RelatedPerson GetRelatedPerson(NaturalPerson naturalPerson, RelationType relationType)
+        {
+            var serializedNaturalPerson = JsonConvert.SerializeObject(naturalPerson);
+            var relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
+            relatedPerson.RelationType = relationType;
+
+            return relatedPerson;
         }
     }
 }
