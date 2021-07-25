@@ -8,16 +8,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using NaturalPersonsDirectory.DAL;
 
 namespace NaturalPersonsDirectory.Modules
 {
     public class RelationService : IRelationService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly INaturalPersonRepository _npRepository;
+        private readonly IRelationRepository _relationRepository;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        public RelationService(ApplicationDbContext context)
+        public RelationService(INaturalPersonRepository npRepository, IRelationRepository relationRepository)
         {
-            _context = context;
+            _npRepository = npRepository;
+            _relationRepository = relationRepository;
         }
         public async Task<Response<RelationResponse>> Create(RelationRequest request)
         {

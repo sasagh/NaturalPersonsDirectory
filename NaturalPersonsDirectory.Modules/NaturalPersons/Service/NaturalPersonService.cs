@@ -1,34 +1,32 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using NaturalPersonsDirectory.Common;
-using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Models;
-using Newtonsoft.Json;
 using NLog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NaturalPersonsDirectory.DAL;
 
 namespace NaturalPersonsDirectory.Modules
 {
     public class NaturalPersonService : INaturalPersonService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly INaturalPersonRepository _npRepository;
+        private readonly IRelationRepository _relationRepository;
         private readonly Logger _logger;
-        public NaturalPersonService(ApplicationDbContext context)
+        public NaturalPersonService(INaturalPersonRepository npRepository, IRelationRepository relationRepository)
         {
-            _context = context;
+            _npRepository = npRepository;
+            _relationRepository = relationRepository;
             _logger = LogManager.GetCurrentClassLogger();
         }
 
         public async Task<Response<NaturalPersonResponse>> Create(NaturalPersonRequest request)
         {
-            var naturalPersonWithSamePassportNumber = 
-                await _context
-                    .NaturalPersons
-                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.PassportNumber == request.PassportNumber);
+            var naturalPersonWithSamePassportNumber =
+                _npRepository.GetByPassportNumberAsync(request.PassportNumber);
 
             if (naturalPersonWithSamePassportNumber != null)
             {
@@ -47,8 +45,7 @@ namespace NaturalPersonsDirectory.Modules
                 ContactInformation = request.ContactInformation,
             };
 
-            _context.NaturalPersons.Add(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _npRepository.CreateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse()
             {
@@ -60,32 +57,17 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> Delete(int id)
         {
-            var naturalPerson =
-                await _context
-                    .NaturalPersons
-                    .SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (naturalPerson == null)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relations = 
-                await _context
-                    .Relations
-                    .Where(relation => relation.FromId == naturalPerson.Id || relation.ToId == naturalPerson.Id)
-                    .ToListAsync();
+            var relations = await _relationRepository.GetNaturalPersonRelationsAsync(naturalPerson.Id);
 
-            if (relations.Any())
-            {
-                foreach (var relation in relations)
-                {
-                    _context.Relations.Remove(relation);
-                }
-            }
-
-            _context.NaturalPersons.Remove(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _relationRepository.DeleteRangeAsync(relations);
+            await _npRepository.DeleteAsync(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete, new NaturalPersonResponse());
         }
@@ -93,25 +75,24 @@ namespace NaturalPersonsDirectory.Modules
         public async Task<Response<NaturalPersonResponse>> GetAll(PaginationParameters parameters)
         {
             var prop = typeof(NaturalPerson).GetProperty(parameters.OrderBy);
-            var naturalPersons = await _context
-                .NaturalPersons
-                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
-                .Take(parameters.PageSize)
-                .ToListAsync();
+            var naturalPersons = 
+                await _npRepository.GetAllWithParametersAsync((parameters.PageNumber - 1) * parameters.PageSize, parameters.PageSize);
 
-            if (!naturalPersons.Any())
+            var naturalPersonsList = naturalPersons.ToList();
+
+            if (naturalPersonsList.Count == 0)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
             }
             
             if (Validator.IsValidOrder(parameters.OrderBy) && prop != null)
             {
-                naturalPersons = naturalPersons.OrderBy(property => prop.GetValue(property, null)).ToList();
+                naturalPersonsList = naturalPersonsList.OrderBy(property => prop.GetValue(property, null)).ToList();
             }
 
             var response = new NaturalPersonResponse()
             {
-                NaturalPersons = naturalPersons
+                NaturalPersons = naturalPersonsList
             };
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Success, response);
@@ -119,10 +100,7 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> GetById(int id)
         {
-            var naturalPerson = 
-                await _context
-                    .NaturalPersons
-                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (naturalPerson == null)
             {
@@ -139,7 +117,7 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> Update(int id, NaturalPersonRequest request)
         {
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (naturalPerson == null)
             {
@@ -159,8 +137,7 @@ namespace NaturalPersonsDirectory.Modules
             naturalPerson.Birthday = DateTime.Parse(request.Birthday);
             naturalPerson.ContactInformation = request.ContactInformation;
 
-            _context.NaturalPersons.Update(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _npRepository.UpdateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse()
             {
@@ -172,57 +149,14 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelatedPersonsResponse>> GetRelatedPersons(int id)
         {
-            var naturalPerson = 
-                await _context
-                    .NaturalPersons
-                    .SingleOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (naturalPerson == null)
             {
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relationsFrom =
-                await _context
-                    .Relations
-                    .Where(relation => relation.FromId == id).Include(relation => relation.To)
-                    .ToListAsync();
-            var relationsTo =
-                await _context
-                    .Relations
-                    .Where(relation => relation.ToId == id).Include(relation => relation.From)
-                    .ToListAsync();
-
-            var relatedPersons = new List<RelatedPerson>();
-
-            if (relationsFrom.Any())
-            {
-                foreach (var relation in relationsFrom)
-                {
-                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.To);
-                    var relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
-                    relatedPerson.RelationType = relation.RelationType;
-
-                    relatedPersons.Add(relatedPerson);
-                }
-            }
-
-            if (relationsTo.Any())
-            {
-                foreach (var relation in relationsTo)
-                {
-                    var serializedNaturalPerson = JsonConvert.SerializeObject(relation.From);
-                    var relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
-                    relatedPerson.RelationType = relation.RelationType;
-
-                    relatedPersons.Add(relatedPerson);
-                }
-            }
-            
-            if (!relatedPersons.Any())
-            {
-                return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.NotFound);
-            }
+            var relatedPersons = await _npRepository.GetRelatedPersonsAsync(id);
             
             var response = new RelatedPersonsResponse()
             {
@@ -244,7 +178,7 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> DeleteImage(int id)
         {
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (naturalPerson == null)
             {
@@ -258,8 +192,7 @@ namespace NaturalPersonsDirectory.Modules
 
             naturalPerson.ImagePath = null;
 
-            _context.Update(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _npRepository.UpdateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse()
             {
@@ -276,7 +209,7 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.UnsupportedFileFormat);
             }
 
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (naturalPerson == null)
             {
@@ -288,10 +221,9 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
 
-            naturalPerson.ImagePath = UploadImageAndGetPath(file);
+            naturalPerson.ImagePath = await UploadImageAndGetPath(file);
 
-            _context.Update(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _npRepository.UpdateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse()
             {
@@ -301,26 +233,9 @@ namespace NaturalPersonsDirectory.Modules
             return ResponseHelper<NaturalPersonResponse>.GetResponse(statusCodeToReturnIfSuccess, response);
         }
         
-        private static string UploadImageAndGetPath(IFormFile image)
+        private async Task<string> UploadImageAndGetPath(IFormFile image)
         {
-            var folderName = Path.Combine(Environment.CurrentDirectory, "Images\\");
-
-            var fileName = new Guid().ToString();
-
-            var filePath = folderName + fileName;
-
-            if (!Directory.Exists(folderName))
-            {
-                Directory.CreateDirectory(folderName);
-            }
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                image.CopyTo(fileStream);
-                fileStream.Flush();
-            }
-
-            return filePath;
+            return await _npRepository.UploadImageAsync(image);
         }
     }
 }
