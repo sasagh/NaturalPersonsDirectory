@@ -260,11 +260,17 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            if (string.IsNullOrWhiteSpace(naturalPerson.ImagePath) && statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
+            if (string.IsNullOrWhiteSpace(naturalPerson.ImagePath))
             {
-                return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
+                if(statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
+                    return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
-
+            else
+            {
+                if(statusCodeToReturnIfSuccess == StatusCode.ImageAdded)
+                    return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.AlreadyHaveImage);
+            }
+            
             naturalPerson.ImagePath = UploadImageAndGetPath(file);
 
             _context.Update(naturalPerson);
@@ -280,15 +286,15 @@ namespace NaturalPersonsDirectory.Modules
         
         private static string UploadImageAndGetPath(IFormFile image)
         {
-            var folderName = Path.Combine(Environment.CurrentDirectory, "Images\\");
+            const string folderName = "Images\\";
+            var folderPath = Path.Combine(Environment.CurrentDirectory, folderName);
+            var fileExtension = image.FileName.Split('.').Last();
+            var fileName = Guid.NewGuid().ToString() + '.' + fileExtension;
+            var filePath = folderPath + fileName;
 
-            var fileName = Guid.NewGuid();
-
-            var filePath = folderName + fileName;
-
-            if (!Directory.Exists(folderName))
+            if (!Directory.Exists(folderPath))
             {
-                Directory.CreateDirectory(folderName);
+                Directory.CreateDirectory(folderPath);
             }
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
