@@ -3,11 +3,8 @@ using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Models;
 using NLog;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace NaturalPersonsDirectory.Modules
 {
@@ -60,10 +57,7 @@ namespace NaturalPersonsDirectory.Modules
             _context.Relations.Add(relation);
             await _context.SaveChangesAsync();
 
-            var response = new RelationResponse()
-            {
-                Relations = new List<Relation>() { relation }
-            };
+            var response = new RelationResponse(relation);
 
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Success, response);
         }
@@ -98,10 +92,7 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound);
             }
 
-            var response = new RelationResponse()
-            {
-                Relations = relations
-            };
+            var response = new RelationResponse(relations);
 
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Success, response);
         }
@@ -118,11 +109,8 @@ namespace NaturalPersonsDirectory.Modules
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound);
             }
-            
-            var response = new RelationResponse()
-            {
-                Relations = new List<Relation>() { relation }
-            };
+
+            var response = new RelationResponse(relation);
 
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Success, response);
         }
@@ -152,10 +140,7 @@ namespace NaturalPersonsDirectory.Modules
             _context.Update(relation);
             await _context.SaveChangesAsync();
 
-            var response = new RelationResponse()
-            {
-                Relations = new List<Relation>() { relation }
-            };
+            var response = new RelationResponse(relation);
 
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Update, response);
         }

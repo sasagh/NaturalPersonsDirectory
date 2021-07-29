@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using System.Collections;
+using FluentValidation;
 using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Models;
 using System.Collections.Generic;
@@ -40,7 +41,17 @@ namespace NaturalPersonsDirectory.Modules
             }
             set => _count = value;
         }
-        public IEnumerable<NaturalPerson> NaturalPersons { get; set; }
+        public ICollection<NaturalPerson> NaturalPersons { get; }
+
+        public NaturalPersonResponse(ICollection<NaturalPerson> naturalPersons = null)
+        {
+            NaturalPersons = naturalPersons ?? new Collection<NaturalPerson>();
+        }
+        
+        public NaturalPersonResponse(NaturalPerson naturalPerson)
+        {
+            NaturalPersons = new Collection<NaturalPerson> {naturalPerson};
+        }
     }
 
     public class RelatedPersonsResponse
@@ -60,7 +71,17 @@ namespace NaturalPersonsDirectory.Modules
             set => _count = value;
         }
 
-        public IEnumerable<RelatedPerson> RelatedPersons { get; set; } = new Collection<RelatedPerson>();
+        public ICollection<RelatedPerson> RelatedPersons { get; }
+        
+        public RelatedPersonsResponse(ICollection<RelatedPerson> relatedPersons = null)
+        {
+            RelatedPersons = relatedPersons ?? new Collection<RelatedPerson>();
+        }
+
+        public RelatedPersonsResponse(RelatedPerson relatedPerson)
+        {
+            RelatedPersons = new Collection<RelatedPerson> {relatedPerson};
+        }
     }
 
     public class NaturalPersonRequestValidator : AbstractValidator<NaturalPersonRequest>
@@ -78,9 +99,9 @@ namespace NaturalPersonsDirectory.Modules
                 .NotEmpty()
                 .Must(Validator.IsValidContactInformation)
                 .WithMessage(
-                "Contact informations format is incorrect. " +
+                "Contact information format is incorrect. " +
                 "Contact information should be phone number (pattern +995-5XX-XXX-XXX) or email address. " +
-                "Multiple informations should be separated by comma (,).");
+                "Multiple items should be separated by comma (,).");
         }
     }
 }

@@ -16,11 +16,9 @@ namespace NaturalPersonsDirectory.Modules
     public class NaturalPersonService : INaturalPersonService
     {
         private readonly ApplicationDbContext _context;
-        private readonly Logger _logger;
         public NaturalPersonService(ApplicationDbContext context)
         {
             _context = context;
-            _logger = LogManager.GetCurrentClassLogger();
         }
 
         public async Task<Response<NaturalPersonResponse>> Create(NaturalPersonRequest request)
@@ -30,7 +28,7 @@ namespace NaturalPersonsDirectory.Modules
                     .NaturalPersons
                     .FirstOrDefaultAsync(person => person.PassportNumber == request.PassportNumber);
 
-            if (naturalPersonWithSamePassportNumber != null)
+            if (NaturalPersonExists(naturalPersonWithSamePassportNumber))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.PassportNumberExists);
             }
@@ -50,10 +48,7 @@ namespace NaturalPersonsDirectory.Modules
             _context.NaturalPersons.Add(naturalPerson);
             await _context.SaveChangesAsync();
 
-            var response = new NaturalPersonResponse()
-            {
-                NaturalPersons = new List<NaturalPerson>() { naturalPerson }
-            };
+            var response = new NaturalPersonResponse(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Create, response);
         }
@@ -65,7 +60,7 @@ namespace NaturalPersonsDirectory.Modules
                     .NaturalPersons
                     .SingleOrDefaultAsync(person => person.Id == id);
 
-            if (naturalPerson == null)
+            if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
@@ -93,20 +88,20 @@ namespace NaturalPersonsDirectory.Modules
                 .Take(parameters.PageSize)
                 .ToListAsync();
 
-            if (!naturalPersons.Any())
+            var naturalPersonsExist = naturalPersons.Any();
+            if (!naturalPersonsExist)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
             }
-            
-            if (Validator.IsValidOrder(parameters.OrderBy) && orderProperty != null)
+
+            var listShouldBeOrdered = orderProperty != null;
+            var validationPropertyIsCorrect = Validator.IsValidOrder(parameters.OrderBy);
+            if (listShouldBeOrdered && validationPropertyIsCorrect)
             {
                 naturalPersons = naturalPersons.OrderBy(property => orderProperty.GetValue(property, null)).ToList();
             }
 
-            var response = new NaturalPersonResponse()
-            {
-                NaturalPersons = naturalPersons
-            };
+            var response = new NaturalPersonResponse(naturalPersons);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Success, response);
         }
@@ -118,15 +113,12 @@ namespace NaturalPersonsDirectory.Modules
                     .NaturalPersons
                     .FirstOrDefaultAsync(person => person.Id == id);
 
-            if (naturalPerson == null)
+            if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
             }
-            
-            var response = new NaturalPersonResponse()
-            {
-                NaturalPersons = new List<NaturalPerson>() { naturalPerson }
-            };
+
+            var response = new NaturalPersonResponse(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Success, response);
         }
@@ -135,12 +127,13 @@ namespace NaturalPersonsDirectory.Modules
         {
             var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
 
-            if (naturalPerson == null)
+            if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            if (naturalPerson.PassportNumber != request.PassportNumber)
+            var passportNumberHasChanged = naturalPerson.PassportNumber != request.PassportNumber;
+            if (passportNumberHasChanged)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.ChangingPassportNumberNotAllowed);
             }
@@ -156,10 +149,7 @@ namespace NaturalPersonsDirectory.Modules
             _context.NaturalPersons.Update(naturalPerson);
             await _context.SaveChangesAsync();
 
-            var response = new NaturalPersonResponse()
-            {
-                NaturalPersons = new List<NaturalPerson>() { naturalPerson }
-            };
+            var response = new NaturalPersonResponse(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Update, response);
         }
@@ -171,7 +161,7 @@ namespace NaturalPersonsDirectory.Modules
                     .NaturalPersons
                     .SingleOrDefaultAsync(person => person.Id == id);
 
-            if (naturalPerson == null)
+            if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.IdNotExists);
             }
@@ -181,7 +171,7 @@ namespace NaturalPersonsDirectory.Modules
                     .Relations
                     .Where(relation => relation.FromId == id)
                     .Include(relation => relation.To)
-                    .Select(relation => GetRelatedPerson(relation.From, relation.RelationType))
+                    .Select(relation => GetRelatedPerson(relation.To, relation.RelationType))
                     .ToListAsync();
 
             var relationsFrom = await 
@@ -195,16 +185,14 @@ namespace NaturalPersonsDirectory.Modules
             var relatedPersons = new List<RelatedPerson>();
             relatedPersons.AddRange(relationsTo);
             relatedPersons.AddRange(relationsFrom);
-            
-            if (!relatedPersons.Any())
+
+            var relatedPersonsExist = relatedPersons.Any();
+            if (!relatedPersonsExist)
             {
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.NotFound);
             }
-            
-            var response = new RelatedPersonsResponse()
-            {
-                RelatedPersons = relatedPersons
-            };
+
+            var response = new RelatedPersonsResponse(relatedPersons);
 
             return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.Success, response);
         }
@@ -223,12 +211,13 @@ namespace NaturalPersonsDirectory.Modules
         {
             var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
 
-            if (naturalPerson == null)
+            if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            if (string.IsNullOrWhiteSpace(naturalPerson.ImagePath))
+            var naturalPersonDoesNotHaveImage = string.IsNullOrWhiteSpace(naturalPerson.ImagePath);
+            if (naturalPersonDoesNotHaveImage)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
@@ -238,10 +227,7 @@ namespace NaturalPersonsDirectory.Modules
             _context.Update(naturalPerson);
             await _context.SaveChangesAsync();
 
-            var response = new NaturalPersonResponse()
-            {
-                NaturalPersons = new List<NaturalPerson>() { naturalPerson }
-            };
+            var response = new NaturalPersonResponse(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.ImageDeleted, response);
         }
@@ -255,12 +241,13 @@ namespace NaturalPersonsDirectory.Modules
 
             var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
 
-            if (naturalPerson == null)
+            if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            if (string.IsNullOrWhiteSpace(naturalPerson.ImagePath))
+            var naturalPersonDoesNotHaveImage = string.IsNullOrWhiteSpace(naturalPerson.ImagePath);
+            if (naturalPersonDoesNotHaveImage)
             {
                 if(statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
                     return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
@@ -276,10 +263,7 @@ namespace NaturalPersonsDirectory.Modules
             _context.Update(naturalPerson);
             await _context.SaveChangesAsync();
 
-            var response = new NaturalPersonResponse()
-            {
-                NaturalPersons = new List<NaturalPerson>() { naturalPerson }
-            };
+            var response = new NaturalPersonResponse(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(statusCodeToReturnIfSuccess, response);
         }
@@ -313,6 +297,11 @@ namespace NaturalPersonsDirectory.Modules
             relatedPerson.RelationType = relationType;
 
             return relatedPerson;
+        }
+
+        private static bool NaturalPersonExists(NaturalPerson naturalPerson)
+        {
+            return naturalPerson != null;
         }
     }
 }
