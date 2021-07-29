@@ -6,7 +6,7 @@ namespace NaturalPersonsDirectory.DAL
 {
     public interface IRelationRepository : IRepository<Relation>
     {
-        Task<bool> RelationWithGivenIdsExist(int fromId, int toId);
+        Task<bool> RelationWithGivenIdsExistAsync(int fromId, int toId);
 
         Task<ICollection<Relation>> GetNaturalPersonRelationsAsync(int naturalPersonId);
 

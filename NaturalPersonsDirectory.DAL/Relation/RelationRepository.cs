@@ -76,7 +76,7 @@ namespace NaturalPersonsDirectory.DAL
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<bool> RelationWithGivenIdsExist(int fromId, int toId)
+        public async Task<bool> RelationWithGivenIdsExistAsync(int fromId, int toId)
         {
             return await _dbContext
                 .Relations

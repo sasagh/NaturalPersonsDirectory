@@ -22,7 +22,7 @@ namespace NaturalPersonsDirectory.Modules
         public async Task<Response<RelationResponse>> Create(RelationRequest request)
         {
             var relationWithGivenIdsExists =
-                await _relationRepository.RelationWithGivenIdsExist(request.FromId, request.ToId);
+                await _relationRepository.RelationWithGivenIdsExistAsync(request.FromId, request.ToId);
 
             if (relationWithGivenIdsExists)
             {
