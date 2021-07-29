@@ -1,9 +1,7 @@
-﻿using NaturalPersonsDirectory.Common;
-
-namespace NaturalPersonsDirectory.Models
+﻿namespace NaturalPersonsDirectory.Models
 {
     public class RelatedPerson : NaturalPerson
     {
-        public RelationType RelationType { get; set; }
+        public string RelationType { get; set; }
     }
 }

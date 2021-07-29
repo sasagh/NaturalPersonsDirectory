@@ -1,8 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
-using NaturalPersonsDirectory.Common;
-using NaturalPersonsDirectory.Db;
+﻿using NaturalPersonsDirectory.Common;
+using NaturalPersonsDirectory.DAL;
 using NaturalPersonsDirectory.Models;
 using NLog;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -10,38 +10,29 @@ namespace NaturalPersonsDirectory.Modules
 {
     public class RelationService : IRelationService
     {
-        private readonly ApplicationDbContext _context;
+        private readonly INaturalPersonRepository _npRepository;
+        private readonly IRelationRepository _relationRepository;
         private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-        public RelationService(ApplicationDbContext context)
+
+        public RelationService(INaturalPersonRepository npRepository, IRelationRepository relationRepository)
         {
-            _context = context;
+            _npRepository = npRepository;
+            _relationRepository = relationRepository;
         }
         public async Task<Response<RelationResponse>> Create(RelationRequest request)
         {
-            var relationWithGivenIds = await _context
-                .Relations
-                .SingleOrDefaultAsync(relation => 
-                    relation.FromId == request.FromId && relation.ToId == request.ToId 
-                    || relation.ToId == request.FromId && relation.FromId == request.ToId);
-
-            var relationWithGivenIdsExists = relationWithGivenIds != null;
+            var relationWithGivenIdsExists =
+                await _relationRepository.RelationWithGivenIdsExist(request.FromId, request.ToId);
 
             if (relationWithGivenIdsExists)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.RelationBetweenGivenIdsExists);
             }
 
-            var relationFrom =
-                await _context
-                    .NaturalPersons
-                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == request.FromId);
-            var relationTo =
-                await _context
-                    .NaturalPersons
-                    .FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == request.ToId);
+            var relationFrom = await _npRepository.GetByIdAsync(request.ToId);
+            var relationTo = await _npRepository.GetByIdAsync(request.FromId);
 
             var bothPersonExist = relationFrom != null && relationTo != null;
-
             if (!bothPersonExist)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IncorrectIds);
@@ -51,11 +42,10 @@ namespace NaturalPersonsDirectory.Modules
             {
                 FromId = request.FromId,
                 ToId = request.ToId,
-                RelationType = request.RelationType.GetValueOrDefault()
+                RelationType = Enum.GetName(typeof(RelationType), request.RelationType.GetValueOrDefault())
             };
 
-            _context.Relations.Add(relation);
-            await _context.SaveChangesAsync();
+            await _relationRepository.CreateAsync(relation);
 
             var response = new RelationResponse(relation);
 
@@ -64,30 +54,28 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelationResponse>> Delete(int id)
         {
-            var relation = await _context.Relations.SingleOrDefaultAsync(relation => relation.Id == id);
+            var relation = await _relationRepository.GetByIdAsync(id);
 
-            if (relation == null)
+            var relationExists = relation != null;
+            if (!relationExists)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            _context.Relations.Remove(relation);
-            await _context.SaveChangesAsync();
+            await _relationRepository.DeleteAsync(relation);
 
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Delete, new RelationResponse());
         }
 
         public async Task<Response<RelationResponse>> GetAll(PaginationParameters parameters)
         {
-            var relations = await _context
-                .Relations
-                .Include(relation => relation.From)
-                .Include(relation => relation.To)
-                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
-                .Take(parameters.PageSize)
-                .ToListAsync();
+            var rel = await _relationRepository.GetAllWithPagination((parameters.PageNumber - 1) * parameters.PageSize,
+                parameters.PageSize);
 
-            if (!relations.Any())
+            var relations = rel.ToList();
+
+            var atLeastOneRelationExists = relations.Any();
+            if (!atLeastOneRelationExists)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound);
             }
@@ -99,13 +87,9 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelationResponse>> GetById(int id)
         {
-            var relation = await _context
-                .Relations
-                .Include(relation => relation.From)
-                .Include(relation => relation.To)
-                .FirstOrDefaultAsync(relation => relation.Id == id);
+            var relation = await _relationRepository.GetByIdAsync(id);
 
-            if (relation == null)
+            if (!RelationExists(relation))
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound);
             }
@@ -117,32 +101,32 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelationResponse>> Update(int id, RelationRequest request)
         {
-            var relation = await _context
-                .Relations
-                .Include(relation => relation.From)
-                .Include(relation => relation.To)
-                .SingleOrDefaultAsync(relation => relation.Id == id);
+            var relation = await _relationRepository.GetByIdAsync(id);
 
             if (relation == null)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relationBetweenGivenIdsExists = relation.FromId == request.FromId && relation.ToId == request.ToId;
-            
-            if(!relationBetweenGivenIdsExists)
+            var givenRelationExists = relation.FromId == request.FromId && relation.ToId == request.ToId;
+
+            if (!givenRelationExists)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.RelationNotExists);
             }
 
-            relation.RelationType = request.RelationType.GetValueOrDefault();
+            relation.RelationType = Enum.GetName(typeof(RelationType), request.RelationType.GetValueOrDefault());
 
-            _context.Update(relation);
-            await _context.SaveChangesAsync();
+            await _relationRepository.UpdateAsync(relation);
 
             var response = new RelationResponse(relation);
 
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Update, response);
+        }
+
+        private static bool RelationExists(Relation relation)
+        {
+            return relation != null;
         }
     }
 }

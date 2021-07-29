@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Db.Configurations;
 using NaturalPersonsDirectory.Models;
 
@@ -13,9 +12,9 @@ namespace NaturalPersonsDirectory.Db
         }
 
         public DbSet<NaturalPerson> NaturalPersons { get; set; }
-        
+
         public DbSet<Relation> Relations { get; set; }
-        
+
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);

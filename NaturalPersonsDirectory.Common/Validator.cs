@@ -54,7 +54,7 @@ namespace NaturalPersonsDirectory.Common
         public static bool IsValidOrder(string value)
         {
             return AllowedOrders
-                .Any(order => 
+                .Any(order =>
                     string.Equals(order, value, StringComparison.CurrentCultureIgnoreCase));
         }
 

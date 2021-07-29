@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using FluentValidation;
+﻿using FluentValidation;
 using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Models;
 using System.Collections.Generic;
@@ -11,18 +10,26 @@ namespace NaturalPersonsDirectory.Modules
     public class NaturalPersonRequest
     {
         public string FirstNameGe { get; set; }
+
         public string FirstNameEn { get; set; }
+
         public string LastNameGe { get; set; }
+
         public string LastNameEn { get; set; }
+
         public string PassportNumber { get; set; }
+
         public string Birthday { get; set; }
+
         public string Address { get; set; }
+
         public string ContactInformation { get; set; }
     }
 
     public class NaturalPersonResponse
     {
         private int? _count;
+
         public int Count
         {
             get
@@ -36,22 +43,24 @@ namespace NaturalPersonsDirectory.Modules
             }
             set => _count = value;
         }
+
         public ICollection<NaturalPerson> NaturalPersons { get; }
 
         public NaturalPersonResponse(ICollection<NaturalPerson> naturalPersons = null)
         {
             NaturalPersons = naturalPersons ?? new Collection<NaturalPerson>();
         }
-        
+
         public NaturalPersonResponse(NaturalPerson naturalPerson)
         {
-            NaturalPersons = new Collection<NaturalPerson> {naturalPerson};
+            NaturalPersons = new Collection<NaturalPerson> { naturalPerson };
         }
     }
 
     public class RelatedPersonsResponse
     {
         private int? _count = default;
+
         public int Count
         {
             get
@@ -67,7 +76,7 @@ namespace NaturalPersonsDirectory.Modules
         }
 
         public ICollection<RelatedPerson> RelatedPersons { get; }
-        
+
         public RelatedPersonsResponse(ICollection<RelatedPerson> relatedPersons = null)
         {
             RelatedPersons = relatedPersons ?? new Collection<RelatedPerson>();
@@ -75,7 +84,7 @@ namespace NaturalPersonsDirectory.Modules
 
         public RelatedPersonsResponse(RelatedPerson relatedPerson)
         {
-            RelatedPersons = new Collection<RelatedPerson> {relatedPerson};
+            RelatedPersons = new Collection<RelatedPerson> { relatedPerson };
         }
     }
 

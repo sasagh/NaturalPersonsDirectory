@@ -1,9 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Models;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace NaturalPersonsDirectory.DAL
 {
@@ -15,7 +15,7 @@ namespace NaturalPersonsDirectory.DAL
         {
             _dbContext = dbContext;
         }
-        
+
         public async Task<Relation> CreateAsync(Relation relation)
         {
             _dbContext.Relations.Add(relation);
@@ -24,15 +24,35 @@ namespace NaturalPersonsDirectory.DAL
             return relation;
         }
 
-        public async Task<IEnumerable<Relation>> GetAllAsync()
+        public async Task<ICollection<Relation>> GetAllAsync()
         {
-            return await _dbContext.Relations.ToListAsync();
+            return await _dbContext
+                .Relations
+                .Include(relation => relation.From)
+                .Include(relation => relation.To)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
+        public async Task<ICollection<Relation>> GetAllWithPagination(int skip, int take)
+        {
+            return await _dbContext
+                .Relations
+                .Include(relation => relation.From)
+                .Include(relation => relation.To)
+                .Skip(skip)
+                .AsNoTracking()
+                .Take(take)
+                .ToListAsync();
         }
 
         public async Task<Relation> GetByIdAsync(int id)
         {
-            return 
-                await _dbContext.Relations.FirstOrDefaultAsync(relation => relation.Id == id);
+            return await _dbContext
+                .Relations
+                .Include(relation => relation.From)
+                .Include(relation => relation.To)
+                .FirstOrDefaultAsync(relation => relation.Id == id);
         }
 
         public async Task<Relation> UpdateAsync(Relation relation)
@@ -49,7 +69,16 @@ namespace NaturalPersonsDirectory.DAL
             await _dbContext.SaveChangesAsync();
         }
 
-        public async Task<IEnumerable<Relation>> GetNaturalPersonRelationsAsync(int naturalPersonId)
+        public async Task<bool> RelationWithGivenIdsExist(int fromId, int toId)
+        {
+            return await _dbContext
+                .Relations
+                .AnyAsync(relation =>
+                    relation.FromId == fromId && relation.ToId == toId
+                    || relation.ToId == fromId && relation.FromId == toId);
+        }
+
+        public async Task<ICollection<Relation>> GetNaturalPersonRelationsAsync(int naturalPersonId)
         {
             return await _dbContext
                 .Relations

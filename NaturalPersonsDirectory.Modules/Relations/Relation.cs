@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using FluentValidation;
+﻿using FluentValidation;
 using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Models;
 using System.Collections.Generic;
@@ -11,13 +10,16 @@ namespace NaturalPersonsDirectory.Modules
     public class RelationRequest
     {
         public int FromId { get; set; }
+
         public int ToId { get; set; }
+
         public RelationType? RelationType { get; set; }
     }
 
     public class RelationResponse
     {
         private int? _count;
+
         public int Count
         {
             get
@@ -31,17 +33,17 @@ namespace NaturalPersonsDirectory.Modules
             }
             set => _count = value;
         }
-        
+
         public ICollection<Relation> Relations { get; }
 
         public RelationResponse(ICollection<Relation> relations = null)
         {
             Relations = relations ?? new Collection<Relation>();
         }
-        
+
         public RelationResponse(Relation relation)
         {
-            Relations = new Collection<Relation> {relation};
+            Relations = new Collection<Relation> { relation };
         }
     }
 

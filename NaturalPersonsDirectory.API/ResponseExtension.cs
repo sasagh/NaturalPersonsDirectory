@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Net;
-using Microsoft.AspNetCore.Authentication.OAuth.Claims;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using NaturalPersonsDirectory.Common;
 
@@ -19,6 +15,7 @@ namespace NaturalPersonsDirectory.API
                 case StatusCode.Delete:
                     return Success(StatusCodes.Status204NoContent);
                 case StatusCode.Success:
+                case StatusCode.Update:
                 case StatusCode.ImageAdded:
                 case StatusCode.ImageUpdated:
                 case StatusCode.ImageDeleted:
@@ -28,13 +25,13 @@ namespace NaturalPersonsDirectory.API
                 default:
                     return Error(StatusCodes.Status400BadRequest);
             }
-            
+
             ObjectResult Success(int statusCode) => new ObjectResult(response.Message)
             {
                 Value = response.Data,
                 StatusCode = statusCode
             };
-            
+
             ActionResult Error(int statusCode) => new ContentResult
             {
                 StatusCode = statusCode,
@@ -43,5 +40,5 @@ namespace NaturalPersonsDirectory.API
             };
         }
     }
-    
+
 }

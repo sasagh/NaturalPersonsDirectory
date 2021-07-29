@@ -1,12 +1,9 @@
 ﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
 using NaturalPersonsDirectory.Common;
-using NaturalPersonsDirectory.Db;
+using NaturalPersonsDirectory.DAL;
 using NaturalPersonsDirectory.Models;
-using Newtonsoft.Json;
 using NLog;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,18 +12,21 @@ namespace NaturalPersonsDirectory.Modules
 {
     public class NaturalPersonService : INaturalPersonService
     {
-        private readonly ApplicationDbContext _context;
-        public NaturalPersonService(ApplicationDbContext context)
+        private readonly INaturalPersonRepository _npRepository;
+        private readonly IRelationRepository _relationRepository;
+        private readonly Logger _logger;
+
+        public NaturalPersonService(INaturalPersonRepository npRepository, IRelationRepository relationRepository)
         {
-            _context = context;
+            _npRepository = npRepository;
+            _relationRepository = relationRepository;
+            _logger = LogManager.GetCurrentClassLogger();
         }
 
         public async Task<Response<NaturalPersonResponse>> Create(NaturalPersonRequest request)
         {
-            var naturalPersonWithSamePassportNumber = 
-                await _context
-                    .NaturalPersons
-                    .FirstOrDefaultAsync(person => person.PassportNumber == request.PassportNumber);
+            var naturalPersonWithSamePassportNumber =
+                await _npRepository.GetByPassportNumberAsync(request.PassportNumber);
 
             if (NaturalPersonExists(naturalPersonWithSamePassportNumber))
             {
@@ -45,8 +45,7 @@ namespace NaturalPersonsDirectory.Modules
                 ContactInformation = request.ContactInformation,
             };
 
-            _context.NaturalPersons.Add(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _npRepository.CreateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse(naturalPerson);
 
@@ -55,63 +54,41 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> Delete(int id)
         {
-            var naturalPerson =
-                await _context
-                    .NaturalPersons
-                    .SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relations =
-                await _context
-                    .Relations
-                    .Where(relation => relation.FromId == naturalPerson.Id || relation.ToId == naturalPerson.Id)
-                    .ToListAsync();
-            
-            _context.RemoveRange(relations);
+            var relations = await _relationRepository.GetNaturalPersonRelationsAsync(naturalPerson.Id);
 
-            _context.NaturalPersons.Remove(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _relationRepository.DeleteRangeAsync(relations);
+            await _npRepository.DeleteAsync(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete, new NaturalPersonResponse());
         }
 
         public async Task<Response<NaturalPersonResponse>> GetAll(PaginationParameters parameters)
         {
-            var orderProperty = typeof(NaturalPerson).GetProperty(parameters.OrderBy);
-            var naturalPersons = await _context
-                .NaturalPersons
-                .Skip((parameters.PageNumber - 1) * parameters.PageSize)
-                .Take(parameters.PageSize)
-                .ToListAsync();
+            var naturalPersons =
+                await _npRepository.GetAllWithPagination((parameters.PageNumber - 1) * parameters.PageSize, parameters.PageSize);
 
-            var naturalPersonsExist = naturalPersons.Any();
-            if (!naturalPersonsExist)
+            var naturalPersonsList = naturalPersons.ToList();
+
+            if (naturalPersonsList.Count == 0)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
             }
 
-            var listShouldBeOrdered = orderProperty != null;
-            var validationPropertyIsCorrect = Validator.IsValidOrder(parameters.OrderBy);
-            if (listShouldBeOrdered && validationPropertyIsCorrect)
-            {
-                naturalPersons = naturalPersons.OrderBy(property => orderProperty.GetValue(property, null)).ToList();
-            }
-
-            var response = new NaturalPersonResponse(naturalPersons);
+            var response = new NaturalPersonResponse(naturalPersonsList);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Success, response);
         }
 
         public async Task<Response<NaturalPersonResponse>> GetById(int id)
         {
-            var naturalPerson = 
-                await _context
-                    .NaturalPersons
-                    .FirstOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (!NaturalPersonExists(naturalPerson))
             {
@@ -125,7 +102,7 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> Update(int id, NaturalPersonRequest request)
         {
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (!NaturalPersonExists(naturalPerson))
             {
@@ -146,8 +123,7 @@ namespace NaturalPersonsDirectory.Modules
             naturalPerson.Birthday = DateTime.Parse(request.Birthday);
             naturalPerson.ContactInformation = request.ContactInformation;
 
-            _context.NaturalPersons.Update(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _npRepository.UpdateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse(naturalPerson);
 
@@ -156,35 +132,15 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelatedPersonsResponse>> GetRelatedPersons(int id)
         {
-            var naturalPerson = 
-                await _context
-                    .NaturalPersons
-                    .SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relationsTo = await 
-                _context
-                    .Relations
-                    .Where(relation => relation.FromId == id)
-                    .Include(relation => relation.To)
-                    .Select(relation => GetRelatedPerson(relation.To, relation.RelationType))
-                    .ToListAsync();
-
-            var relationsFrom = await 
-                _context
-                    .Relations
-                    .Where(relation => relation.ToId == id)
-                    .Include(relation => relation.From)
-                    .Select(relation => GetRelatedPerson(relation.From, relation.RelationType))
-                    .ToListAsync();
-
-            var relatedPersons = new List<RelatedPerson>();
-            relatedPersons.AddRange(relationsTo);
-            relatedPersons.AddRange(relationsFrom);
+            var related = await _npRepository.GetRelatedPersonsAsync(id);
+            var relatedPersons = related.ToList();
 
             var relatedPersonsExist = relatedPersons.Any();
             if (!relatedPersonsExist)
@@ -209,23 +165,22 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<NaturalPersonResponse>> DeleteImage(int id)
         {
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var naturalPersonDoesNotHaveImage = string.IsNullOrWhiteSpace(naturalPerson.ImagePath);
+            var naturalPersonDoesNotHaveImage = string.IsNullOrWhiteSpace(naturalPerson.ImageFileName);
             if (naturalPersonDoesNotHaveImage)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
 
-            naturalPerson.ImagePath = null;
+            naturalPerson.ImageFileName = null;
 
-            _context.Update(naturalPerson);
-            await _context.SaveChangesAsync();
+            await _npRepository.UpdateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse(naturalPerson);
 
@@ -239,36 +194,36 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.UnsupportedFileFormat);
             }
 
-            var naturalPerson = await _context.NaturalPersons.SingleOrDefaultAsync(person => person.Id == id);
+            var naturalPerson = await _npRepository.GetByIdAsync(id);
 
             if (!NaturalPersonExists(naturalPerson))
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var naturalPersonDoesNotHaveImage = string.IsNullOrWhiteSpace(naturalPerson.ImagePath);
+            var naturalPersonDoesNotHaveImage = string.IsNullOrWhiteSpace(naturalPerson.ImageFileName);
             if (naturalPersonDoesNotHaveImage)
             {
-                if(statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
+                if (statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
                     return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
+
             else
             {
-                if(statusCodeToReturnIfSuccess == StatusCode.ImageAdded)
+                if (statusCodeToReturnIfSuccess == StatusCode.ImageAdded)
                     return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.AlreadyHaveImage);
             }
-            
-            naturalPerson.ImagePath = UploadImageAndGetPath(file);
 
-            _context.Update(naturalPerson);
-            await _context.SaveChangesAsync();
+            naturalPerson.ImageFileName = await UploadImageAndGetFileName(file);
+
+            await _npRepository.UpdateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(statusCodeToReturnIfSuccess, response);
         }
-        
-        private static string UploadImageAndGetPath(IFormFile image)
+
+        private async Task<string> UploadImageAndGetFileName(IFormFile image)
         {
             const string folderName = "Images\\";
             var folderPath = Path.Combine(Environment.CurrentDirectory, folderName);
@@ -283,20 +238,11 @@ namespace NaturalPersonsDirectory.Modules
 
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
-                image.CopyTo(fileStream);
-                fileStream.Flush();
+                await image.CopyToAsync(fileStream);
+                await fileStream.FlushAsync();
             }
 
-            return filePath;
-        }
-        
-        private static RelatedPerson GetRelatedPerson(NaturalPerson naturalPerson, RelationType relationType)
-        {
-            var serializedNaturalPerson = JsonConvert.SerializeObject(naturalPerson);
-            var relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);
-            relatedPerson.RelationType = relationType;
-
-            return relatedPerson;
+            return await _npRepository.UploadImageAsync(image);
         }
 
         private static bool NaturalPersonExists(NaturalPerson naturalPerson)

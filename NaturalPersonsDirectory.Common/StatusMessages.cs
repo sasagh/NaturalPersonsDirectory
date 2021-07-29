@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace NaturalPersonsDirectory.Common
 {
     public static class StatusMessages
     {
         public static string GetMessageByStatusCode(StatusCode statusCode) => Messages[statusCode];
-        
+
         private static readonly Dictionary<StatusCode, string> Messages = new Dictionary<StatusCode, string>()
         {
             { StatusCode.Success, "Operation completed successfully."},

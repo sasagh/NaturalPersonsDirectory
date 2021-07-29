@@ -1,4 +1,3 @@
-using System;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -6,11 +5,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
+using NaturalPersonsDirectory.DAL;
 using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Modules;
 using System.Reflection;
-using Microsoft.OpenApi.Models;
-using NaturalPersonsDirectory.DAL;
 
 namespace NaturalPersonsDirectory.API
 {
@@ -34,9 +33,9 @@ namespace NaturalPersonsDirectory.API
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo {Title = "NPDirectory.Api", Version = "v1"});
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "NPDirectory.Api", Version = "v1" });
             });
-            
+
             services.AddDbContext<ApplicationDbContext>(
                 options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
 

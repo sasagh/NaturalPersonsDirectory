@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using NaturalPersonsDirectory.Db;
+using NaturalPersonsDirectory.Models;
+using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using NaturalPersonsDirectory.Common;
-using NaturalPersonsDirectory.Db;
-using NaturalPersonsDirectory.Models;
-using Newtonsoft.Json;
 
 namespace NaturalPersonsDirectory.DAL
 {
@@ -30,24 +28,24 @@ namespace NaturalPersonsDirectory.DAL
             return naturalPerson;
         }
 
-        public async Task<IEnumerable<NaturalPerson>> GetAllAsync()
+        public async Task<ICollection<NaturalPerson>> GetAllAsync()
         {
-            return await _dbContext.NaturalPersons.ToListAsync();
+            return await _dbContext.NaturalPersons.AsNoTracking().ToListAsync();
         }
 
-        public async Task<IEnumerable<NaturalPerson>> GetAllWithParametersAsync(int skip, int take)
+        public async Task<ICollection<NaturalPerson>> GetAllWithPagination(int skip, int take)
         {
             return await _dbContext
                 .NaturalPersons
                 .Skip(skip)
                 .Take(take)
+                .AsNoTracking()
                 .ToListAsync();
         }
 
         public async Task<NaturalPerson> GetByIdAsync(int id)
         {
-            return 
-                await _dbContext.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
+            return await _dbContext.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
         }
 
         public async Task<NaturalPerson> UpdateAsync(NaturalPerson naturalPerson)
@@ -64,53 +62,58 @@ namespace NaturalPersonsDirectory.DAL
             await _dbContext.SaveChangesAsync();
         }
 
-        public async  Task<NaturalPerson> GetByPassportNumberAsync(string passportNumber)
+        public async Task<NaturalPerson> GetByPassportNumberAsync(string passportNumber)
         {
             return await _dbContext.NaturalPersons.FirstOrDefaultAsync(naturalPerson =>
                     naturalPerson.PassportNumber == passportNumber);
         }
 
-        public async Task<IEnumerable<RelatedPerson>> GetRelatedPersonsAsync(int naturalPersonId)
+        public async Task<ICollection<RelatedPerson>> GetRelatedPersonsAsync(int naturalPersonId)
         {
             var relationsTo =
-                _dbContext
+                await _dbContext
                     .Relations
                     .Where(relation => relation.FromId == naturalPersonId)
                     .Include(relation => relation.To)
-                    .Select(relation => GetRelatedPerson(relation.From, relation.RelationType));
-            
+                    .Select(relation => GetRelatedPerson(relation.To, relation.RelationType)).ToListAsync();
+
             var relationsFrom =
-                _dbContext
+                await _dbContext
                     .Relations
                     .Where(relation => relation.ToId == naturalPersonId)
                     .Include(relation => relation.From)
-                    .Select(relation => GetRelatedPerson(relation.From, relation.RelationType));
+                    .Select(relation => GetRelatedPerson(relation.From, relation.RelationType)).ToListAsync();
 
-            return await relationsTo.Concat(relationsFrom).ToListAsync();
+            var relations = new List<RelatedPerson>();
+            relations.AddRange(relationsTo);
+            relations.AddRange(relationsFrom);
+
+            return relations;
         }
 
         public async Task<string> UploadImageAsync(IFormFile image)
         {
-            var folderPath= Path.Combine(Environment.CurrentDirectory, "Images\\");
-            var fileName = new Guid().ToString();
-            
+            var folderPath = Path.Combine(Environment.CurrentDirectory, "Images\\");
+            var fileExtension = image.FileName.Split('.').Last();
+            var fileName = Guid.NewGuid().ToString() + '.' + fileExtension;
+
             if (!Directory.Exists(folderPath))
             {
                 Directory.CreateDirectory(folderPath);
             }
 
             var filePath = folderPath + fileName;
-            
+
             using (var fileStream = new FileStream(filePath, FileMode.Create))
             {
                 await image.CopyToAsync(fileStream);
                 await fileStream.FlushAsync();
             }
 
-            return filePath;
+            return fileName;
         }
 
-        private static RelatedPerson GetRelatedPerson(NaturalPerson naturalPerson, RelationType relationType)
+        private static RelatedPerson GetRelatedPerson(NaturalPerson naturalPerson, string relationType)
         {
             var serializedNaturalPerson = JsonConvert.SerializeObject(naturalPerson);
             var relatedPerson = JsonConvert.DeserializeObject<RelatedPerson>(serializedNaturalPerson);

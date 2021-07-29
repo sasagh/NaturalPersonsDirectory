@@ -1,5 +1,4 @@
 ﻿using NaturalPersonsDirectory.Common;
-using System.Threading.Tasks;
 
 namespace NaturalPersonsDirectory.Modules
 {

@@ -80,14 +80,14 @@ namespace NaturalPersonsDirectory.API
                     {
                         FromId = naturalPersons[0].Id,
                         ToId = naturalPersons[1].Id,
-                        RelationType = RelationType.Acquaintance
+                        RelationType = Enum.GetName(typeof(RelationType), RelationType.Employee)
                     };
 
                     var relation2 = new Relation()
                     {
                         FromId = naturalPersons[1].Id,
                         ToId = naturalPersons[2].Id,
-                        RelationType = RelationType.Employee
+                        RelationType = Enum.GetName(typeof(RelationType), RelationType.Acquaintance)
                     };
 
                     context.Relations.Add(relation1);

@@ -1,9 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using NaturalPersonsDirectory.Models;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using NaturalPersonsDirectory.Modules;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 
 namespace NaturalPersonsDirectory.API.Controllers
 {
@@ -41,7 +39,7 @@ namespace NaturalPersonsDirectory.API.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RelationResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<RelationResponse>> PutRelation(int id,[FromBody] RelationRequest request)
+        public async Task<ActionResult<RelationResponse>> PutRelation(int id, [FromBody] RelationRequest request)
         {
             var response = await _relationService.Update(id, request);
 
