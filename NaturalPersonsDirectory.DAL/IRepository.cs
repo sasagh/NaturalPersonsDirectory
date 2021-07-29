@@ -12,6 +12,8 @@ namespace NaturalPersonsDirectory.DAL
         Task<ICollection<T>> GetAllWithPagination(int skip, int take);
 
         Task<T> GetByIdAsync(int id);
+        
+        Task<bool> ExistsAsync(int id);
 
         Task<T> UpdateAsync(T model);
 

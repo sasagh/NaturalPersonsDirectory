@@ -61,9 +61,9 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var relations = await _relationRepository.GetNaturalPersonRelationsAsync(naturalPerson.Id);
+            var personRelations = await _relationRepository.GetNaturalPersonRelationsAsync(naturalPerson.Id);
 
-            await _relationRepository.DeleteRangeAsync(relations);
+            await _relationRepository.DeleteRangeAsync(personRelations);
             await _npRepository.DeleteAsync(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete, new NaturalPersonResponse());
@@ -74,14 +74,13 @@ namespace NaturalPersonsDirectory.Modules
             var naturalPersons =
                 await _npRepository.GetAllWithPagination((parameters.PageNumber - 1) * parameters.PageSize, parameters.PageSize);
 
-            var naturalPersonsList = naturalPersons.ToList();
-
-            if (naturalPersonsList.Count == 0)
+            var atLeastOneNaturalPersonExist = naturalPersons.Any();
+            if (!atLeastOneNaturalPersonExist)
             {
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
             }
 
-            var response = new NaturalPersonResponse(naturalPersonsList);
+            var response = new NaturalPersonResponse(naturalPersons);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Success, response);
         }
@@ -139,11 +138,10 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.IdNotExists);
             }
 
-            var related = await _npRepository.GetRelatedPersonsAsync(id);
-            var relatedPersons = related.ToList();
+            var relatedPersons = await _npRepository.GetRelatedPersonsAsync(id);
 
-            var relatedPersonsExist = relatedPersons.Any();
-            if (!relatedPersonsExist)
+            var atLeastOneRelatedPersonExists = relatedPersons.Any();
+            if (!atLeastOneRelatedPersonExists)
             {
                 return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.NotFound);
             }
@@ -207,7 +205,6 @@ namespace NaturalPersonsDirectory.Modules
                 if (statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
                     return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
             }
-
             else
             {
                 if (statusCodeToReturnIfSuccess == StatusCode.ImageAdded)

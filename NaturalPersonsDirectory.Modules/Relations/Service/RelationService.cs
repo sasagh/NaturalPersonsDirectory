@@ -29,10 +29,10 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.RelationBetweenGivenIdsExists);
             }
 
-            var relationFrom = await _npRepository.GetByIdAsync(request.ToId);
-            var relationTo = await _npRepository.GetByIdAsync(request.FromId);
+            var firstPersonExists = await _npRepository.ExistsAsync(request.ToId);
+            var secondPersonExists = await _npRepository.ExistsAsync(request.FromId);
 
-            var bothPersonExist = relationFrom != null && relationTo != null;
+            var bothPersonExist = firstPersonExists && secondPersonExists;
             if (!bothPersonExist)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IncorrectIds);
@@ -69,10 +69,10 @@ namespace NaturalPersonsDirectory.Modules
 
         public async Task<Response<RelationResponse>> GetAll(PaginationParameters parameters)
         {
-            var rel = await _relationRepository.GetAllWithPagination((parameters.PageNumber - 1) * parameters.PageSize,
+            var relations = await 
+                _relationRepository.GetAllWithPagination(
+                (parameters.PageNumber - 1) * parameters.PageSize,
                 parameters.PageSize);
-
-            var relations = rel.ToList();
 
             var atLeastOneRelationExists = relations.Any();
             if (!atLeastOneRelationExists)
@@ -103,7 +103,7 @@ namespace NaturalPersonsDirectory.Modules
         {
             var relation = await _relationRepository.GetByIdAsync(id);
 
-            if (relation == null)
+            if (!RelationExists(relation))
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IdNotExists);
             }

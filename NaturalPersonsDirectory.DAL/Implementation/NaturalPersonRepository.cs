@@ -48,6 +48,13 @@ namespace NaturalPersonsDirectory.DAL
             return await _dbContext.NaturalPersons.FirstOrDefaultAsync(naturalPerson => naturalPerson.Id == id);
         }
 
+        public async Task<bool> ExistsAsync(int id)
+        {
+            return await _dbContext
+                .NaturalPersons
+                .AnyAsync(naturalPerson => naturalPerson.Id == id);
+        }
+
         public async Task<NaturalPerson> UpdateAsync(NaturalPerson naturalPerson)
         {
             _dbContext.NaturalPersons.Update(naturalPerson);
