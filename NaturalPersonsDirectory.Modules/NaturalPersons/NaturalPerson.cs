@@ -9,7 +9,7 @@ namespace NaturalPersonsDirectory.Modules
 {
     public class NaturalPersonRequest
     {
-        public string FirstNameGE { get; set; }
+        public string FirstNameGe { get; set; }
         public string FirstNameEn { get; set; }
         public string LastNameGe { get; set; }
         public string LastNameEn { get; set; }
@@ -68,7 +68,7 @@ namespace NaturalPersonsDirectory.Modules
         public NaturalPersonRequestValidator()
         {
             RuleFor(request => request.FirstNameEn).NotEmpty().WithMessage("FirstNameEn should not be empty.");
-            RuleFor(request => request.FirstNameGE).NotEmpty().WithMessage("FirstNameGe should not be empty.");
+            RuleFor(request => request.FirstNameGe).NotEmpty().WithMessage("FirstNameGe should not be empty.");
             RuleFor(request => request.LastNameEn).NotEmpty().WithMessage("LastNameEn should not be empty.");
             RuleFor(request => request.LastNameGe).NotEmpty().WithMessage("LastNameGe should not be empty.");
             RuleFor(request => request.Address).NotEmpty().WithMessage("Address should not be empty.");

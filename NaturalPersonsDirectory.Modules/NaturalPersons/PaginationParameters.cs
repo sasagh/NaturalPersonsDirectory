@@ -13,7 +13,7 @@
         private string _orderBy;
         public string OrderBy
         {
-            get => _orderBy ?? "NaturalPersonId";
+            get => _orderBy ?? "Id";
             set => _orderBy = value;
         }
     }

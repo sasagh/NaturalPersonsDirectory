@@ -38,7 +38,7 @@ namespace NaturalPersonsDirectory.Modules
             var naturalPerson = new NaturalPerson()
             {
                 FirstNameEn = request.FirstNameEn,
-                FirstNameGe = request.FirstNameGE,
+                FirstNameGe = request.FirstNameGe,
                 LastNameEn = request.LastNameEn,
                 LastNameGe = request.LastNameGe,
                 Address = request.Address,
@@ -146,7 +146,7 @@ namespace NaturalPersonsDirectory.Modules
             }
 
             naturalPerson.FirstNameEn = request.FirstNameEn;
-            naturalPerson.FirstNameGe = request.FirstNameGE;
+            naturalPerson.FirstNameGe = request.FirstNameGe;
             naturalPerson.LastNameEn = request.LastNameEn;
             naturalPerson.LastNameGe = request.LastNameGe;
             naturalPerson.Address = request.Address;
