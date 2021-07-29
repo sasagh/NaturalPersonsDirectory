@@ -10,6 +10,7 @@ using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Modules;
 using System.Reflection;
 using Microsoft.OpenApi.Models;
+using NaturalPersonsDirectory.DAL;
 
 namespace NaturalPersonsDirectory.API
 {
@@ -38,7 +39,9 @@ namespace NaturalPersonsDirectory.API
             
             services.AddDbContext<ApplicationDbContext>(
                 options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            
+
+            services.AddScoped<INaturalPersonRepository, NaturalPersonRepository>();
+            services.AddScoped<IRelationRepository, RelationRepository>();
             services.AddTransient<INaturalPersonService, NaturalPersonService>();
             services.AddTransient<IRelationService, RelationService>();
         }

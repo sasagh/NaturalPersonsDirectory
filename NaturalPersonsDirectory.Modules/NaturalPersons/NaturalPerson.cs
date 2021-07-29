@@ -20,11 +20,6 @@ namespace NaturalPersonsDirectory.Modules
         public string ContactInformation { get; set; }
     }
 
-    public class RelatedPerson : NaturalPerson
-    {
-        public RelationType RelationType { get; set; }
-    }
-
     public class NaturalPersonResponse
     {
         private int? _count;

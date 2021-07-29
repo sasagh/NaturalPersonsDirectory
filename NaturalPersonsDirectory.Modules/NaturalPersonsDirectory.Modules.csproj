@@ -17,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\NaturalPersonsDirectory.DAL\NaturalPersonsDirectory.DAL.csproj" />
     <ProjectReference Include="..\NaturalPersonsDirectory.Db\NaturalPersonsDirectory.Db.csproj" />
   </ItemGroup>
 
