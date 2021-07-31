@@ -10,6 +10,8 @@ using NaturalPersonsDirectory.DAL;
 using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Modules;
 using System.Reflection;
+using Microsoft.AspNetCore.Http;
+using NaturalPersonsDirectory.Common;
 
 namespace NaturalPersonsDirectory.API
 {
@@ -53,6 +55,19 @@ namespace NaturalPersonsDirectory.API
                 app.UseSwagger();
                 app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "NPDirectory.Api v1"));
             }
+
+            app.UseExceptionHandler(appError =>
+            {
+                appError.Run(async context =>
+                {
+                    const int statusCode = StatusCodes.Status500InternalServerError;
+                    var message = StatusMessages.GetMessageByStatusCode(StatusCode.InternalServerError);
+                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+                    context.Response.ContentType = "text/plain";
+
+                    await context.Response.WriteAsync($"Status Code: {statusCode}; {message}");
+                });
+            });
 
             app.UseRouting();
 

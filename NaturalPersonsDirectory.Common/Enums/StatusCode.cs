@@ -7,7 +7,7 @@
         Delete,
         Update,
         NotFound,
-        Error,
+        InternalServerError,
         ImageAdded,
         ImageUpdated,
         ImageDeleted,

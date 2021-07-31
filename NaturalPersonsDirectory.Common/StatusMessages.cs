@@ -13,7 +13,7 @@ namespace NaturalPersonsDirectory.Common
             { StatusCode.Delete, "Item deleted successfully."},
             { StatusCode.Update, "Item updated successfully."},
             { StatusCode.NotFound, "Not found."},
-            { StatusCode.Error, "There was an error while processing request."},
+            { StatusCode.InternalServerError, "There was an error while processing request."},
             { StatusCode.ImageAdded, "Image added successfully."},
             { StatusCode.ImageUpdated, "Image updated successfully."},
             { StatusCode.ImageDeleted, "Image deleted successfully."},
