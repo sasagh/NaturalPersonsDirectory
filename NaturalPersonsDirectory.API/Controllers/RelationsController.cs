@@ -38,6 +38,7 @@ namespace NaturalPersonsDirectory.API.Controllers
 
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RelationResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<RelationResponse>> PutRelation(int id, [FromBody] RelationRequest request)
         {
@@ -58,7 +59,7 @@ namespace NaturalPersonsDirectory.API.Controllers
 
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RelationResponse>> DeleteRelation(int id)
         {
             var response = await _relationService.Delete(id);

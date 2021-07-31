@@ -20,6 +20,7 @@ namespace NaturalPersonsDirectory.API
                 case StatusCode.ImageUpdated:
                 case StatusCode.ImageDeleted:
                     return Success(StatusCodes.Status200OK);
+                case StatusCode.IdNotExists:
                 case StatusCode.NotFound:
                     return Error(StatusCodes.Status404NotFound);
                 default:

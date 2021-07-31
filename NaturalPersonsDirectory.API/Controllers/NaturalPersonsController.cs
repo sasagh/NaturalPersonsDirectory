@@ -37,6 +37,7 @@ namespace NaturalPersonsDirectory.API.Controllers
 
         [HttpPut("{id:int}")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NaturalPersonResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<NaturalPersonResponse>> PutNaturalPerson(int id, [FromBody] NaturalPersonRequest request)
         {
@@ -57,7 +58,7 @@ namespace NaturalPersonsDirectory.API.Controllers
 
         [HttpDelete("{id:int}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<NaturalPersonResponse>> DeleteNaturalPerson(int id)
         {
             var response = await _naturalPersonService.Delete(id);
@@ -77,6 +78,7 @@ namespace NaturalPersonsDirectory.API.Controllers
 
         [HttpPost("{id:int}/image")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NaturalPersonResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<NaturalPersonResponse>> AddImage(int id, IFormFile image)
         {
@@ -87,6 +89,7 @@ namespace NaturalPersonsDirectory.API.Controllers
 
         [HttpPut("{id:int}/image")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NaturalPersonResponse))]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<NaturalPersonResponse>> UpdateImage(int id, IFormFile image)
         {
@@ -97,7 +100,7 @@ namespace NaturalPersonsDirectory.API.Controllers
 
         [HttpDelete("{id:int}/image")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NaturalPersonResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<NaturalPersonResponse>> DeleteImage(int id)
         {
             var result = await _naturalPersonService.DeleteImage(id);
