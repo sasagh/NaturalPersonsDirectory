@@ -21,14 +21,6 @@ namespace NaturalPersonsDirectory.Modules
         }
         public async Task<Response<RelationResponse>> Create(RelationRequest request)
         {
-            var relationWithGivenIdsExists =
-                await _relationRepository.RelationWithGivenIdsExistAsync(request.FromId, request.ToId);
-
-            if (relationWithGivenIdsExists)
-            {
-                return ResponseHelper<RelationResponse>.GetResponse(StatusCode.RelationBetweenGivenIdsExists);
-            }
-
             var firstPersonExists = await _npRepository.ExistsAsync(request.ToId);
             var secondPersonExists = await _npRepository.ExistsAsync(request.FromId);
 
@@ -36,6 +28,14 @@ namespace NaturalPersonsDirectory.Modules
             if (!bothPersonExist)
             {
                 return ResponseHelper<RelationResponse>.GetResponse(StatusCode.IncorrectIds);
+            }
+            
+            var relationWithGivenIdsExists =
+                await _relationRepository.RelationWithGivenIdsExistAsync(request.FromId, request.ToId);
+
+            if (relationWithGivenIdsExists)
+            {
+                return ResponseHelper<RelationResponse>.GetResponse(StatusCode.RelationBetweenGivenIdsExists);
             }
 
             var relation = new Relation()
@@ -49,7 +49,7 @@ namespace NaturalPersonsDirectory.Modules
 
             var response = new RelationResponse(relation);
 
-            return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Success, response);
+            return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Create, response);
         }
 
         public async Task<Response<RelationResponse>> Delete(int id)
@@ -67,10 +67,10 @@ namespace NaturalPersonsDirectory.Modules
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Delete, new RelationResponse());
         }
 
-        public async Task<Response<RelationResponse>> GetAll(PaginationParameters parameters)
+        public async Task<Response<RelationResponse>> Get(PaginationParameters parameters)
         {
             var relations = await 
-                _relationRepository.GetAllWithPagination(
+                _relationRepository.GetAllWithPaginationAsync(
                 (parameters.PageNumber - 1) * parameters.PageSize,
                 parameters.PageSize);
 

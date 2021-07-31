@@ -20,7 +20,7 @@ namespace NaturalPersonsDirectory.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<NaturalPersonResponse>> GetNaturalPersons([FromQuery] PaginationParameters parameters)
         {
-            var response = await _naturalPersonService.GetAll(parameters);
+            var response = await _naturalPersonService.Get(parameters);
 
             return response.MatchActionResult();
         }

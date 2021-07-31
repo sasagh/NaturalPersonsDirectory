@@ -25,7 +25,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         }
 
         [Fact]
-        public async Task GetAll_ShouldReturnFirstTenNaturalPersons_WhenPaginationParametersAreDefault()
+        public async Task Get_ShouldReturnFirstTenNaturalPersons_WhenPaginationParametersAreDefault()
         {
             //Arrange
             const int expectedResultDataSize = 10;
@@ -39,10 +39,10 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             }
 
             _npRepository.Setup(np =>
-                np.GetAllWithPagination(It.IsAny<int>(), It.IsAny<int>()).Result).Returns(naturalPersons);
+                np.GetAllWithPaginationAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(naturalPersons);
 
             //Act
-            var methodResult = await _sut.GetAll(paginationParameters);
+            var methodResult = await _sut.Get(paginationParameters);
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
@@ -50,7 +50,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         }
 
         [Fact]
-        public async Task GetAll_ShouldReturnPageSizeCountElements_WhenPaginationParametersAreNotDefault()
+        public async Task Get_ShouldReturnPageSizeCountElements_WhenPaginationParametersAreNotDefault()
         {
             //Arrange
             const int expectedResultDataSize = 2;
@@ -67,10 +67,10 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             }
 
             _npRepository.Setup(np =>
-                np.GetAllWithPagination(It.IsAny<int>(), expectedResultDataSize)).ReturnsAsync(naturalPersons);
+                np.GetAllWithPaginationAsync(It.IsAny<int>(), expectedResultDataSize)).ReturnsAsync(naturalPersons);
 
             //Act
-            var methodResult = await _sut.GetAll(paginationParameters);
+            var methodResult = await _sut.Get(paginationParameters);
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
@@ -78,7 +78,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         }
 
         [Fact]
-        public async Task GetAll_ShouldReturnNotFound_WhenThereIsNoItemInDatabase()
+        public async Task Get_ShouldReturnNotFound_WhenThereIsNoItemInDatabase()
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.NotFound;
@@ -87,10 +87,10 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             var naturalPersons = new Collection<NaturalPerson>();
 
             _npRepository.Setup(np =>
-                np.GetAllWithPagination(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(naturalPersons);
+                np.GetAllWithPaginationAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(naturalPersons);
 
             //Act
-            var methodResult = await _sut.GetAll(paginationParameters);
+            var methodResult = await _sut.Get(paginationParameters);
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
@@ -102,10 +102,10 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.Success;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
 
             _npRepository.Setup(np =>
-                np.GetByIdAsync(It.IsAny<int>()).Result).Returns(naturalPerson);
+                np.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(naturalPerson);
 
             //Act
             var methodResult = await _sut.GetById(It.IsAny<int>());
@@ -137,7 +137,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.Create;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             var request = new NaturalPersonRequest()
             {
                 Address = naturalPerson.Address,
@@ -163,7 +163,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.PassportNumberExists;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             var request = new NaturalPersonRequest()
             {
                 Address = naturalPerson.Address,
@@ -184,16 +184,15 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
-        public async Task Update_ShouldUpdateNaturalPerson_WhenAllParametersAreCorrect()
+        public async Task Update_ShouldUpdateNaturalPerson_WhenAllParametersAreValid()
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.Update;
             const string changedFirstName = "Leqso";
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             var request = new NaturalPersonRequest()
             {
                 Address = naturalPerson.Address,
@@ -222,29 +221,15 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.IdNotExists;
-            const string changedFirstName = "Leqso";
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
-            var request = new NaturalPersonRequest()
-            {
-                Address = naturalPerson.Address,
-                Birthday = naturalPerson.Birthday.ToString(CultureInfo.InvariantCulture),
-                ContactInformation = naturalPerson.ContactInformation,
-                PassportNumber = naturalPerson.PassportNumber,
-                FirstNameEn = changedFirstName,
-                FirstNameGe = naturalPerson.FirstNameGe,
-                LastNameEn = naturalPerson.LastNameEn,
-                LastNameGe = naturalPerson.LastNameGe
-            };
 
             _npRepository.Setup(np =>
                 np.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(() => null);
 
             //Act
-            var methodResult = await _sut.Update(It.IsAny<int>(), request);
+            var methodResult = await _sut.Update(It.IsAny<int>(), new NaturalPersonRequest());
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -253,7 +238,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.ChangingPassportNumberNotAllowed;
             const string changedPassportNumber = "00000000000";
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             var request = new NaturalPersonRequest()
             {
                 Address = naturalPerson.Address,
@@ -274,15 +259,14 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
-        public async Task Delete_ShouldDeleteNaturalPerson_WhenNaturalPersonWithGivenIdExist()
+        public async Task Delete_ShouldDeleteNaturalPerson_WhenNaturalPersonWithGivenIdExists()
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.Delete;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             var relations = new Collection<Relation>()
             {
                 new Relation()
@@ -305,7 +289,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -322,7 +305,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -330,7 +312,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.Success;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             var relatedPersons = new Collection<RelatedPerson>()
             {
                 new RelatedPerson()
@@ -366,7 +348,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.NotFound;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
 
             _npRepository.Setup(np =>
                 np.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(naturalPerson);
@@ -396,7 +378,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -404,7 +385,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.ImageAdded;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             naturalPerson.ImageFileName = null;
             const string imageFileName = "image.jpg";
             var image = new FormFile(new MemoryStream(), 0, 0, "Data", imageFileName);
@@ -428,7 +409,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.UnsupportedFileFormat;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             naturalPerson.ImageFileName = null;
             const string imageFileName = "image.txt";
             var image = new FormFile(new MemoryStream(), 0, 0, "Data", imageFileName);
@@ -444,7 +425,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -463,7 +443,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -471,8 +450,8 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.AlreadyHaveImage;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
-            PreparedNaturalPersons.GetBidzinaTabagari().Address = "guja";
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
+            PreparedModels.GetBidzinaTabagari().Address = "guja";
             const string imageFileName = "image.jpg";
             var image = new FormFile(new MemoryStream(), 0, 0, "Data", imageFileName);
 
@@ -487,7 +466,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -495,7 +473,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.ImageUpdated;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             const string imageFileName = "image.jpg";
             var image = new FormFile(new MemoryStream(), 0, 0, "Data", imageFileName);
 
@@ -518,7 +496,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.UnsupportedFileFormat;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             naturalPerson.ImageFileName = null;
             const string imageFileName = "image.txt";
             var image = new FormFile(new MemoryStream(), 0, 0, "Data", imageFileName);
@@ -534,7 +512,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -553,7 +530,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
 
         [Fact]
@@ -561,7 +537,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.NoImage;
-            var naturalPerson = PreparedNaturalPersons.GetBidzinaTabagari();
+            var naturalPerson = PreparedModels.GetBidzinaTabagari();
             naturalPerson.ImageFileName = null;
             const string imageFileName = "image.jpg";
             var image = new FormFile(new MemoryStream(), 0, 0, "Data", imageFileName);
@@ -577,7 +553,6 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
 
             //Assert
             Assert.Equal(expectedStatusCode, methodResult.StatusCode);
-            Assert.Null(methodResult.Data);
         }
     }
 }

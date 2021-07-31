@@ -21,7 +21,7 @@ namespace NaturalPersonsDirectory.API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<RelationResponse>> GetRelations([FromQuery] PaginationParameters parameters)
         {
-            var response = await _relationService.GetAll(parameters);
+            var response = await _relationService.Get(parameters);
 
             return response.MatchActionResult();
         }

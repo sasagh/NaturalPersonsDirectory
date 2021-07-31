@@ -19,9 +19,9 @@ namespace NaturalPersonsDirectory.API
 
                 context.Database.Migrate();
 
-                var person1 = PreparedNaturalPersons.GetBidzinaTabagari();
-                var person2 = PreparedNaturalPersons.GetGuramJinoria();
-                var person3 = PreparedNaturalPersons.GetUchaZeragia();
+                var person1 = PreparedModels.GetBidzinaTabagari();
+                var person2 = PreparedModels.GetGuramJinoria();
+                var person3 = PreparedModels.GetUchaZeragia();
 
                 if (!context.NaturalPersons.Any(naturalPerson => naturalPerson.PassportNumber == person1.PassportNumber))
                 {

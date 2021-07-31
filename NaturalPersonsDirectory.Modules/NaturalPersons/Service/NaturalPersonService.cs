@@ -69,10 +69,10 @@ namespace NaturalPersonsDirectory.Modules
             return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete);
         }
 
-        public async Task<Response<NaturalPersonResponse>> GetAll(PaginationParameters parameters)
+        public async Task<Response<NaturalPersonResponse>> Get(PaginationParameters parameters)
         {
             var naturalPersons =
-                await _npRepository.GetAllWithPagination((parameters.PageNumber - 1) * parameters.PageSize, parameters.PageSize);
+                await _npRepository.GetAllWithPaginationAsync((parameters.PageNumber - 1) * parameters.PageSize, parameters.PageSize);
 
             var atLeastOneNaturalPersonExist = naturalPersons.Any();
             if (!atLeastOneNaturalPersonExist)

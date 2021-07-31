@@ -1,8 +1,9 @@
 ﻿using System;
+using NaturalPersonsDirectory.Common;
 
 namespace NaturalPersonsDirectory.Models
 {
-    public static class PreparedNaturalPersons
+    public static class PreparedModels
     {
         public static NaturalPerson GetBidzinaTabagari() => new NaturalPerson()
         {
@@ -41,6 +42,13 @@ namespace NaturalPersonsDirectory.Models
             ContactInformation = "Unknown",
             Birthday = new DateTime(1955, 1, 1),
             ImageFileName = "UCHA_ZERAGIA_IMAGE.jpg"
+        };
+
+        public static Relation GetRelation() => new Relation()
+        {
+            FromId = 1,
+            ToId = 2,
+            RelationType = Enum.GetName(typeof(RelationType), RelationType.Other)
         };
     }
 }

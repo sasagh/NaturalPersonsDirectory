@@ -34,7 +34,7 @@ namespace NaturalPersonsDirectory.DAL
                 .ToListAsync();
         }
 
-        public async Task<ICollection<Relation>> GetAllWithPagination(int skip, int take)
+        public async Task<ICollection<Relation>> GetAllWithPaginationAsync(int skip, int take)
         {
             return await _dbContext
                 .Relations

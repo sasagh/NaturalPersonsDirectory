@@ -6,7 +6,7 @@ namespace NaturalPersonsDirectory.Modules
     {
         Task<TResponse> Create(TRequest model);
 
-        Task<TResponse> GetAll(PaginationParameters parameters);
+        Task<TResponse> Get(PaginationParameters parameters);
 
         Task<TResponse> GetById(int id);
 

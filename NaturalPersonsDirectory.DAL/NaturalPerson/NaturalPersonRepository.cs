@@ -33,7 +33,7 @@ namespace NaturalPersonsDirectory.DAL
             return await _dbContext.NaturalPersons.AsNoTracking().ToListAsync();
         }
 
-        public async Task<ICollection<NaturalPerson>> GetAllWithPagination(int skip, int take)
+        public async Task<ICollection<NaturalPerson>> GetAllWithPaginationAsync(int skip, int take)
         {
             return await _dbContext
                 .NaturalPersons
