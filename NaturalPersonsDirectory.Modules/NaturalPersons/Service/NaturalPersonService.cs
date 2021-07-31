@@ -66,7 +66,7 @@ namespace NaturalPersonsDirectory.Modules
             await _relationRepository.DeleteRangeAsync(personRelations);
             await _npRepository.DeleteAsync(naturalPerson);
 
-            return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete, new NaturalPersonResponse());
+            return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.Delete);
         }
 
         public async Task<Response<NaturalPersonResponse>> GetAll(PaginationParameters parameters)
@@ -77,7 +77,7 @@ namespace NaturalPersonsDirectory.Modules
             var atLeastOneNaturalPersonExist = naturalPersons.Any();
             if (!atLeastOneNaturalPersonExist)
             {
-                return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
+                return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound, new NaturalPersonResponse());
             }
 
             var response = new NaturalPersonResponse(naturalPersons);
@@ -91,7 +91,7 @@ namespace NaturalPersonsDirectory.Modules
 
             if (!NaturalPersonExists(naturalPerson))
             {
-                return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound);
+                return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NotFound, new NaturalPersonResponse());
             }
 
             var response = new NaturalPersonResponse(naturalPerson);
@@ -143,7 +143,7 @@ namespace NaturalPersonsDirectory.Modules
             var atLeastOneRelatedPersonExists = relatedPersons.Any();
             if (!atLeastOneRelatedPersonExists)
             {
-                return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.NotFound);
+                return ResponseHelper<RelatedPersonsResponse>.GetResponse(StatusCode.NotFound, new RelatedPersonsResponse());
             }
 
             var response = new RelatedPersonsResponse(relatedPersons);
@@ -203,43 +203,25 @@ namespace NaturalPersonsDirectory.Modules
             if (naturalPersonDoesNotHaveImage)
             {
                 if (statusCodeToReturnIfSuccess == StatusCode.ImageUpdated)
+                {
                     return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.NoImage);
+                }
             }
             else
             {
                 if (statusCodeToReturnIfSuccess == StatusCode.ImageAdded)
+                {
                     return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.AlreadyHaveImage);
+                }
             }
 
-            naturalPerson.ImageFileName = await UploadImageAndGetFileName(file);
+            naturalPerson.ImageFileName = await _npRepository.UploadImageAsync(file);
 
             await _npRepository.UpdateAsync(naturalPerson);
 
             var response = new NaturalPersonResponse(naturalPerson);
 
             return ResponseHelper<NaturalPersonResponse>.GetResponse(statusCodeToReturnIfSuccess, response);
-        }
-
-        private async Task<string> UploadImageAndGetFileName(IFormFile image)
-        {
-            const string folderName = "Images\\";
-            var folderPath = Path.Combine(Environment.CurrentDirectory, folderName);
-            var fileExtension = image.FileName.Split('.').Last();
-            var fileName = Guid.NewGuid().ToString() + '.' + fileExtension;
-            var filePath = folderPath + fileName;
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
-            using (var fileStream = new FileStream(filePath, FileMode.Create))
-            {
-                await image.CopyToAsync(fileStream);
-                await fileStream.FlushAsync();
-            }
-
-            return await _npRepository.UploadImageAsync(image);
         }
 
         private static bool NaturalPersonExists(NaturalPerson naturalPerson)

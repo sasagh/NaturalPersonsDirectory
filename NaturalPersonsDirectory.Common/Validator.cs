@@ -41,8 +41,10 @@ namespace NaturalPersonsDirectory.Common
             {
                 var trimmedItem = item.Trim();
 
-                if (!Regex.Match(trimmedItem, phoneNumberPattern, RegexOptions.IgnoreCase).Success &&
-                    !Regex.Match(trimmedItem, emailPattern, RegexOptions.IgnoreCase).Success)
+                var isPhoneNumber = Regex.Match(trimmedItem, phoneNumberPattern, RegexOptions.IgnoreCase).Success;
+                var isEmail = Regex.Match(trimmedItem, emailPattern, RegexOptions.IgnoreCase).Success;
+                
+                if (!isPhoneNumber && !isEmail)
                 {
                     return false;
                 }

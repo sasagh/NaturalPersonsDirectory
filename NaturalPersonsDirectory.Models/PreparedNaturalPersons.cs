@@ -4,7 +4,7 @@ namespace NaturalPersonsDirectory.Models
 {
     public static class PreparedNaturalPersons
     {
-        public static NaturalPerson BidzinaTabagari { get; } = new NaturalPerson()
+        public static NaturalPerson GetBidzinaTabagari() => new NaturalPerson()
         {
             FirstNameEn = "Bidzina",
             FirstNameGe = "ბიძინა",
@@ -13,10 +13,11 @@ namespace NaturalPersonsDirectory.Models
             Address = "Tbilisi",
             PassportNumber = "98765432111",
             ContactInformation = "+995-555-111-222,bidzina.tabagari@gmail.com",
-            Birthday = new DateTime(1950, 1, 1)
+            Birthday = new DateTime(1950, 1, 1),
+            ImageFileName = "BIDZINA_TABAGARI_IMAGE.jpg"
         };
 
-        public static NaturalPerson GuramJinoria { get; } = new NaturalPerson()
+        public static NaturalPerson GetGuramJinoria() => new NaturalPerson()
         {
             FirstNameEn = "Guram",
             FirstNameGe = "გურამ",
@@ -25,10 +26,11 @@ namespace NaturalPersonsDirectory.Models
             Address = "Moscow",
             PassportNumber = "12345678901",
             ContactInformation = "guram.jinoria@mail.ru",
-            Birthday = new DateTime(1951, 1, 1)
+            Birthday = new DateTime(1951, 1, 1),
+            ImageFileName = "GURAM_JINORIA_IMAGE.jpg"
         };
-        
-        public static NaturalPerson UchaZeragia { get; } = new NaturalPerson()
+
+        public static NaturalPerson GetUchaZeragia() => new NaturalPerson()
         {
             FirstNameEn = "Ucha",
             FirstNameGe = "უჩა",
@@ -37,7 +39,8 @@ namespace NaturalPersonsDirectory.Models
             Address = "Unknown",
             PassportNumber = "32112332123",
             ContactInformation = "Unknown",
-            Birthday = new DateTime(1955, 1, 1)
+            Birthday = new DateTime(1955, 1, 1),
+            ImageFileName = "UCHA_ZERAGIA_IMAGE.jpg"
         };
     }
 }

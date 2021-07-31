@@ -77,7 +77,7 @@ namespace NaturalPersonsDirectory.Modules
             var atLeastOneRelationExists = relations.Any();
             if (!atLeastOneRelationExists)
             {
-                return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound);
+                return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound, new RelationResponse());
             }
 
             var response = new RelationResponse(relations);
@@ -91,7 +91,7 @@ namespace NaturalPersonsDirectory.Modules
 
             if (!RelationExists(relation))
             {
-                return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound);
+                return ResponseHelper<RelationResponse>.GetResponse(StatusCode.NotFound, new RelationResponse());
             }
 
             var response = new RelationResponse(relation);
