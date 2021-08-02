@@ -7,6 +7,12 @@ namespace NaturalPersonsDirectory.DAL
 {
     public interface INaturalPersonRepository : IRepository<NaturalPerson>
     {
+        Task<ICollection<NaturalPerson>> GetAllWithPaginationAsync(
+            int skip,
+            int take,
+            bool orderByDescending,
+            string orderBy);
+        
         Task<NaturalPerson> GetByPassportNumberAsync(string passportNumber);
 
         Task<ICollection<RelatedPerson>> GetRelatedPersonsAsync(int naturalPersonId);

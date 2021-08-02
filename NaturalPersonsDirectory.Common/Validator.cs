@@ -62,20 +62,22 @@ namespace NaturalPersonsDirectory.Common
 
         private static readonly List<string> AllowedImageExtensions = new List<string>()
         {
-            "jpg",
-            "jpeg",
-            "png",
-            "tiff",
-            "gif"
+            GlobalVariables.Jpg,
+            GlobalVariables.Jpeg,
+            GlobalVariables.Png,
+            GlobalVariables.Tiff,
+            GlobalVariables.Gif
         };
 
         private static readonly List<string> AllowedOrders = new List<string>()
         {
-            "NaturalPersonId",
-            "FirstNameEn",
-            "LastNameEn",
-            "PassportNumber",
-            "Birthday"
+            GlobalVariables.Id,
+            GlobalVariables.FirstNameEn,
+            GlobalVariables.FirstNameGe,
+            GlobalVariables.LastNameEn,
+            GlobalVariables.LastNameGe,
+            GlobalVariables.Birthday,
+            GlobalVariables.PassportNumber
         };
     }
 }

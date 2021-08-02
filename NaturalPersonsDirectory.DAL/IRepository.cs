@@ -9,8 +9,6 @@ namespace NaturalPersonsDirectory.DAL
 
         Task<ICollection<T>> GetAllAsync();
 
-        Task<ICollection<T>> GetAllWithPaginationAsync(int skip, int take);
-
         Task<T> GetByIdAsync(int id);
         
         Task<bool> ExistsAsync(int id);

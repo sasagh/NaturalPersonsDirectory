@@ -6,6 +6,8 @@ namespace NaturalPersonsDirectory.Modules
 {
     public interface INaturalPersonService : IService<NaturalPersonRequest, Response<NaturalPersonResponse>>
     {
+        Task<Response<NaturalPersonResponse>> Get(NaturalPersonPaginationParameters parameters);
+        
         Task<Response<RelatedPersonsResponse>> GetRelatedPersons(int id);
 
         Task<Response<NaturalPersonResponse>> AddImage(int id, IFormFile image);

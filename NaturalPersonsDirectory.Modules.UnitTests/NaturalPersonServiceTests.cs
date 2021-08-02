@@ -30,7 +30,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const int expectedResultDataSize = 10;
             const StatusCode expectedStatusCode = StatusCode.Success;
-            var paginationParameters = new PaginationParameters();
+            var paginationParameters = new NaturalPersonPaginationParameters();
 
             var naturalPersons = new Collection<NaturalPerson>();
             for (var i = 0; i < expectedResultDataSize; i++)
@@ -39,7 +39,12 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             }
 
             _npRepository.Setup(np =>
-                np.GetAllWithPaginationAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(naturalPersons);
+                    np.GetAllWithPaginationAsync(
+                        It.IsAny<int>(), 
+                        It.IsAny<int>(), 
+                        It.IsAny<bool>(), 
+                        It.IsAny<string>())).
+                ReturnsAsync(naturalPersons);
 
             //Act
             var methodResult = await _sut.Get(paginationParameters);
@@ -55,7 +60,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const int expectedResultDataSize = 2;
             const StatusCode expectedStatusCode = StatusCode.Success;
-            var paginationParameters = new PaginationParameters()
+            var paginationParameters = new NaturalPersonPaginationParameters()
             {
                 PageSize = 2
             };
@@ -67,7 +72,12 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             }
 
             _npRepository.Setup(np =>
-                np.GetAllWithPaginationAsync(It.IsAny<int>(), expectedResultDataSize)).ReturnsAsync(naturalPersons);
+                    np.GetAllWithPaginationAsync(
+                        It.IsAny<int>(), 
+                        expectedResultDataSize,
+                        It.IsAny<bool>(), 
+                        It.IsAny<string>())).
+                ReturnsAsync(naturalPersons);
 
             //Act
             var methodResult = await _sut.Get(paginationParameters);
@@ -82,12 +92,17 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.NotFound;
-            var paginationParameters = new PaginationParameters();
+            var paginationParameters = new NaturalPersonPaginationParameters();
 
             var naturalPersons = new Collection<NaturalPerson>();
 
             _npRepository.Setup(np =>
-                np.GetAllWithPaginationAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(naturalPersons);
+                np.GetAllWithPaginationAsync(
+                    It.IsAny<int>(), 
+                    It.IsAny<int>(), 
+                    It.IsAny<bool>(), 
+                    It.IsAny<string>())).
+                ReturnsAsync(naturalPersons);
 
             //Act
             var methodResult = await _sut.Get(paginationParameters);

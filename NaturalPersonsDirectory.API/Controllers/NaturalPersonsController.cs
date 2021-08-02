@@ -18,7 +18,7 @@ namespace NaturalPersonsDirectory.API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(NaturalPersonResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<NaturalPersonResponse>> GetNaturalPersons([FromQuery] PaginationParameters parameters)
+        public async Task<ActionResult<NaturalPersonResponse>> GetNaturalPersons([FromQuery] NaturalPersonPaginationParameters parameters)
         {
             var response = await _naturalPersonService.Get(parameters);
 

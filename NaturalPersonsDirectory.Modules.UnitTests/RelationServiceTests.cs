@@ -27,7 +27,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const int expectedResultDataSize = 10;
             const StatusCode expectedStatusCode = StatusCode.Success;
-            var paginationParameters = new PaginationParameters();
+            var paginationParameters = new RelationPaginationParameters();
 
             var relations = new Collection<Relation>();
             for (var i = 0; i < expectedResultDataSize; i++)
@@ -35,8 +35,12 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
                 relations.Add(new Relation());
             }
 
-            _relationRepository.Setup(r =>
-                r.GetAllWithPaginationAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(relations);
+            _relationRepository.Setup(r => 
+                r.GetAllWithPaginationAsync(
+                        It.IsAny<int>(), 
+                        expectedResultDataSize, 
+                        It.IsAny<bool>())).
+                ReturnsAsync(relations);
 
             //Act
             var methodResult = await _sut.Get(paginationParameters);
@@ -52,7 +56,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const int expectedResultDataSize = 2;
             const StatusCode expectedStatusCode = StatusCode.Success;
-            var paginationParameters = new PaginationParameters()
+            var paginationParameters = new RelationPaginationParameters()
             {
                 PageSize = 2
             };
@@ -63,8 +67,12 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
                 relations.Add(new Relation());
             }
 
-            _relationRepository.Setup(r =>
-                r.GetAllWithPaginationAsync(It.IsAny<int>(), expectedResultDataSize)).ReturnsAsync(relations);
+            _relationRepository.Setup(r => 
+                r.GetAllWithPaginationAsync(
+                        It.IsAny<int>(), 
+                        expectedResultDataSize, 
+                        It.IsAny<bool>())).
+                ReturnsAsync(relations);
 
             //Act
             var methodResult = await _sut.Get(paginationParameters);
@@ -79,12 +87,16 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
         {
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.NotFound;
-            var paginationParameters = new PaginationParameters();
+            var paginationParameters = new RelationPaginationParameters();
 
             var relations = new Collection<Relation>();
 
             _relationRepository.Setup(r =>
-                r.GetAllWithPaginationAsync(It.IsAny<int>(), It.IsAny<int>())).ReturnsAsync(relations);
+                r.GetAllWithPaginationAsync(
+                    It.IsAny<int>(), 
+                    It.IsAny<int>(), 
+                    It.IsAny<bool>())).
+                ReturnsAsync(relations);
 
             //Act
             var methodResult = await _sut.Get(paginationParameters);

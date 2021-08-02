@@ -34,10 +34,11 @@ namespace NaturalPersonsDirectory.DAL
                 .ToListAsync();
         }
 
-        public async Task<ICollection<Relation>> GetAllWithPaginationAsync(int skip, int take)
+        public async Task<ICollection<Relation>> GetAllWithPaginationAsync(int skip, int take, bool orderByDescending)
         {
             return await _dbContext
                 .Relations
+                .OrderBy(orderByDescending)
                 .Include(relation => relation.From)
                 .Include(relation => relation.To)
                 .Skip(skip)

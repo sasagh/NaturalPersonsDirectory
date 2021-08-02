@@ -19,7 +19,7 @@ namespace NaturalPersonsDirectory.API.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(RelationResponse))]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<ActionResult<RelationResponse>> GetRelations([FromQuery] PaginationParameters parameters)
+        public async Task<ActionResult<RelationResponse>> GetRelations([FromQuery] RelationPaginationParameters parameters)
         {
             var response = await _relationService.Get(parameters);
 

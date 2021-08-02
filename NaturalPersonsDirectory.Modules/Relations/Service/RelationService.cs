@@ -67,12 +67,13 @@ namespace NaturalPersonsDirectory.Modules
             return ResponseHelper<RelationResponse>.GetResponse(StatusCode.Delete, new RelationResponse());
         }
 
-        public async Task<Response<RelationResponse>> Get(PaginationParameters parameters)
+        public async Task<Response<RelationResponse>> Get(RelationPaginationParameters parameters)
         {
             var relations = await 
                 _relationRepository.GetAllWithPaginationAsync(
                 (parameters.PageNumber - 1) * parameters.PageSize,
-                parameters.PageSize);
+                parameters.PageSize,
+                parameters.OrderByDescending);
 
             var atLeastOneRelationExists = relations.Any();
             if (!atLeastOneRelationExists)
