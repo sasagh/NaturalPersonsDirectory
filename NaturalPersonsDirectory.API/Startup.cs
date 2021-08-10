@@ -39,7 +39,7 @@ namespace NaturalPersonsDirectory.API
             });
 
             services.AddDbContext<ApplicationDbContext>(
-                options => options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+                options => options.UseSqlite("DataSource=NPDirectoryDb"));
 
             services.AddScoped<INaturalPersonRepository, NaturalPersonRepository>();
             services.AddScoped<IRelationRepository, RelationRepository>();

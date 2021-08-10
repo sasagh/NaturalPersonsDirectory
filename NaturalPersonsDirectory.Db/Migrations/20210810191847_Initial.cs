@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace NaturalPersonsDirectory.Db.Migrations
 {
-    public partial class InitialMigration : Migration
+    public partial class Initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -12,7 +12,7 @@ namespace NaturalPersonsDirectory.Db.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                        .Annotation("Sqlite:Autoincrement", true),
                     FirstNameGe = table.Column<string>(nullable: true),
                     FirstNameEn = table.Column<string>(nullable: true),
                     LastNameGe = table.Column<string>(nullable: true),
@@ -21,7 +21,7 @@ namespace NaturalPersonsDirectory.Db.Migrations
                     Birthday = table.Column<DateTime>(type: "date", nullable: false),
                     Address = table.Column<string>(nullable: true),
                     ContactInformation = table.Column<string>(nullable: true),
-                    ImagePath = table.Column<string>(nullable: true)
+                    ImageFileName = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -33,7 +33,7 @@ namespace NaturalPersonsDirectory.Db.Migrations
                 columns: table => new
                 {
                     Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                        .Annotation("Sqlite:Autoincrement", true),
                     FromId = table.Column<int>(nullable: false),
                     ToId = table.Column<int>(nullable: false),
                     RelationType = table.Column<string>(nullable: true)
