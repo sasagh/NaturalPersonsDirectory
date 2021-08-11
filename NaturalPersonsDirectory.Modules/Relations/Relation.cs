@@ -3,7 +3,6 @@ using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace NaturalPersonsDirectory.Modules
 {
@@ -18,21 +17,7 @@ namespace NaturalPersonsDirectory.Modules
 
     public class RelationResponse
     {
-        private int? _count;
-
-        public int Count
-        {
-            get
-            {
-                if (_count == null)
-                {
-                    return Relations?.Count() ?? 0;
-                }
-
-                return _count.Value;
-            }
-            set => _count = value;
-        }
+        public int Count => Relations.Count;
 
         public ICollection<Relation> Relations { get; }
 
