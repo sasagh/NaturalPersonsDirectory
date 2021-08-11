@@ -1,8 +1,10 @@
-﻿using FluentValidation;
+﻿using System;
+using FluentValidation;
 using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using AutoMapper;
 
 namespace NaturalPersonsDirectory.Modules
 {
@@ -56,6 +58,23 @@ namespace NaturalPersonsDirectory.Modules
         public RelatedPersonsResponse(RelatedPerson relatedPerson)
         {
             RelatedPersons = new Collection<RelatedPerson> { relatedPerson };
+        }
+    }
+
+    public class NaturalPersonProfile : Profile
+    {
+        public NaturalPersonProfile()
+        {
+            CreateMap<string, DateTime>().ConvertUsing<DateTimeTypeConverter>();
+            CreateMap<NaturalPersonRequest, NaturalPerson>().ReverseMap();
+        }
+
+        private class DateTimeTypeConverter : ITypeConverter<string, DateTime>
+        {
+            public DateTime Convert(string source, DateTime destination, ResolutionContext context)
+            {
+                return System.Convert.ToDateTime(source);
+            }
         }
     }
 

@@ -9,6 +9,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using Xunit;
 
 namespace NaturalPersonsDirectory.Modules.UnitTests
@@ -16,12 +17,19 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
     public class NaturalPersonServiceTests
     {
         private readonly NaturalPersonService _sut;
-        private readonly Mock<INaturalPersonRepository> _npRepository = new Mock<INaturalPersonRepository>();
-        private readonly Mock<IRelationRepository> _relationRepository = new Mock<IRelationRepository>();
+        private readonly Mock<INaturalPersonRepository> _npRepository = new();
+        private readonly Mock<IRelationRepository> _relationRepository = new();
+        private readonly IMapper _mapper;
 
         public NaturalPersonServiceTests()
         {
-            _sut = new NaturalPersonService(_npRepository.Object, _relationRepository.Object);
+            var mappingConfig = new MapperConfiguration(mc =>
+            {
+                mc.AddProfile(new NaturalPersonProfile());
+            });
+            _mapper = mappingConfig.CreateMapper();
+            _sut = new NaturalPersonService(_npRepository.Object, _relationRepository.Object, _mapper);
+            
         }
 
         [Fact]
@@ -153,17 +161,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.Create;
             var naturalPerson = PreparedModels.GetBidzinaTabagari();
-            var request = new NaturalPersonRequest()
-            {
-                Address = naturalPerson.Address,
-                Birthday = naturalPerson.Birthday.ToString(CultureInfo.InvariantCulture),
-                ContactInformation = naturalPerson.ContactInformation,
-                PassportNumber = naturalPerson.PassportNumber,
-                FirstNameEn = naturalPerson.FirstNameEn,
-                FirstNameGe = naturalPerson.FirstNameGe,
-                LastNameEn = naturalPerson.LastNameEn,
-                LastNameGe = naturalPerson.LastNameGe
-            };
+            var request = _mapper.Map<NaturalPersonRequest>(naturalPerson);
 
             //Act
             var methodResult = await _sut.Create(request);
@@ -179,17 +177,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.PassportNumberExists;
             var naturalPerson = PreparedModels.GetBidzinaTabagari();
-            var request = new NaturalPersonRequest()
-            {
-                Address = naturalPerson.Address,
-                Birthday = naturalPerson.Birthday.ToString(CultureInfo.InvariantCulture),
-                ContactInformation = naturalPerson.ContactInformation,
-                PassportNumber = naturalPerson.PassportNumber,
-                FirstNameEn = naturalPerson.FirstNameEn,
-                FirstNameGe = naturalPerson.FirstNameGe,
-                LastNameEn = naturalPerson.LastNameEn,
-                LastNameGe = naturalPerson.LastNameGe
-            };
+            var request = _mapper.Map<NaturalPersonRequest>(naturalPerson);
 
             _npRepository.Setup(np =>
                 np.GetByPassportNumberAsync(It.IsAny<string>())).ReturnsAsync(naturalPerson);
@@ -208,17 +196,8 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             const StatusCode expectedStatusCode = StatusCode.Update;
             const string changedFirstName = "Leqso";
             var naturalPerson = PreparedModels.GetBidzinaTabagari();
-            var request = new NaturalPersonRequest()
-            {
-                Address = naturalPerson.Address,
-                Birthday = naturalPerson.Birthday.ToString(CultureInfo.InvariantCulture),
-                ContactInformation = naturalPerson.ContactInformation,
-                PassportNumber = naturalPerson.PassportNumber,
-                FirstNameEn = changedFirstName,
-                FirstNameGe = naturalPerson.FirstNameGe,
-                LastNameEn = naturalPerson.LastNameEn,
-                LastNameGe = naturalPerson.LastNameGe
-            };
+            var request = _mapper.Map<NaturalPersonRequest>(naturalPerson);
+            request.FirstNameEn = changedFirstName;
 
             _npRepository.Setup(np =>
                 np.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(naturalPerson);
@@ -254,17 +233,8 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             const StatusCode expectedStatusCode = StatusCode.ChangingPassportNumberNotAllowed;
             const string changedPassportNumber = "00000000000";
             var naturalPerson = PreparedModels.GetBidzinaTabagari();
-            var request = new NaturalPersonRequest()
-            {
-                Address = naturalPerson.Address,
-                Birthday = naturalPerson.Birthday.ToString(CultureInfo.InvariantCulture),
-                ContactInformation = naturalPerson.ContactInformation,
-                PassportNumber = changedPassportNumber,
-                FirstNameEn = naturalPerson.FirstNameEn,
-                FirstNameGe = naturalPerson.FirstNameGe,
-                LastNameEn = naturalPerson.LastNameEn,
-                LastNameGe = naturalPerson.LastNameGe
-            };
+            var request = _mapper.Map<NaturalPersonRequest>(naturalPerson);
+            request.PassportNumber = changedPassportNumber;
 
             _npRepository.Setup(np =>
                 np.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(naturalPerson);

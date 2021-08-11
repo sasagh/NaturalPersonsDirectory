@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 
 namespace NaturalPersonsDirectory.Modules
 {
@@ -14,12 +15,14 @@ namespace NaturalPersonsDirectory.Modules
     {
         private readonly INaturalPersonRepository _npRepository;
         private readonly IRelationRepository _relationRepository;
+        private readonly IMapper _mapper;
         private readonly Logger _logger;
 
-        public NaturalPersonService(INaturalPersonRepository npRepository, IRelationRepository relationRepository)
+        public NaturalPersonService(INaturalPersonRepository npRepository, IRelationRepository relationRepository, IMapper mapper)
         {
             _npRepository = npRepository;
             _relationRepository = relationRepository;
+            _mapper = mapper;
             _logger = LogManager.GetCurrentClassLogger();
         }
 
@@ -33,17 +36,7 @@ namespace NaturalPersonsDirectory.Modules
                 return ResponseHelper<NaturalPersonResponse>.GetResponse(StatusCode.PassportNumberExists);
             }
 
-            var naturalPerson = new NaturalPerson()
-            {
-                FirstNameEn = request.FirstNameEn,
-                FirstNameGe = request.FirstNameGe,
-                LastNameEn = request.LastNameEn,
-                LastNameGe = request.LastNameGe,
-                Address = request.Address,
-                PassportNumber = request.PassportNumber,
-                Birthday = DateTime.Parse(request.Birthday),
-                ContactInformation = request.ContactInformation,
-            };
+            var naturalPerson = _mapper.Map<NaturalPerson>(request);
 
             await _npRepository.CreateAsync(naturalPerson);
 

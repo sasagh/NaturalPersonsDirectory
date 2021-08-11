@@ -1,3 +1,4 @@
+using System;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -41,6 +42,7 @@ namespace NaturalPersonsDirectory.API
             services.AddDbContext<ApplicationDbContext>(
                 options => options.UseSqlite("DataSource=NPDirectoryDb"));
 
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
             services.AddScoped<INaturalPersonRepository, NaturalPersonRepository>();
             services.AddScoped<IRelationRepository, RelationRepository>();
             services.AddTransient<INaturalPersonService, NaturalPersonService>();

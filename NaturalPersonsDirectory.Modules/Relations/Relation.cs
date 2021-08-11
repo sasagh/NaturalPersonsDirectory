@@ -3,6 +3,7 @@ using NaturalPersonsDirectory.Common;
 using NaturalPersonsDirectory.Models;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using AutoMapper;
 
 namespace NaturalPersonsDirectory.Modules
 {

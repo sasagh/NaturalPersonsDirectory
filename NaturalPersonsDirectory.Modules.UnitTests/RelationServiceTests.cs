@@ -13,8 +13,8 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
     public class RelationServiceTests
     {
         private readonly IRelationService _sut;
-        private readonly Mock<INaturalPersonRepository> _npRepository = new Mock<INaturalPersonRepository>();
-        private readonly Mock<IRelationRepository> _relationRepository = new Mock<IRelationRepository>();
+        private readonly Mock<INaturalPersonRepository> _npRepository = new();
+        private readonly Mock<IRelationRepository> _relationRepository = new();
 
         public RelationServiceTests()
         {
