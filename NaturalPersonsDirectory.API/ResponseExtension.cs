@@ -29,8 +29,8 @@ namespace NaturalPersonsDirectory.API
 
             ObjectResult Success(int statusCode) => new ObjectResult(response.Message)
             {
-                Value = response.Data,
-                StatusCode = statusCode
+                StatusCode = statusCode,
+                Value = response.Data
             };
 
             ActionResult Error(int statusCode) => new ContentResult

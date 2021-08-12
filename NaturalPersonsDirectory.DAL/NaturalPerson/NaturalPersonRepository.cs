@@ -96,11 +96,11 @@ namespace NaturalPersonsDirectory.DAL
                     .Include(relation => relation.From)
                     .Select(relation => GetRelatedPerson(relation.From, relation.RelationType)).ToListAsync();
 
-            var relations = new List<RelatedPerson>();
-            relations.AddRange(relationsTo);
-            relations.AddRange(relationsFrom);
+            var relatedPersons = new List<RelatedPerson>();
+            relatedPersons.AddRange(relationsTo);
+            relatedPersons.AddRange(relationsFrom);
 
-            return relations;
+            return relatedPersons;
         }
 
         public async Task<string> UploadImageAsync(IFormFile image)

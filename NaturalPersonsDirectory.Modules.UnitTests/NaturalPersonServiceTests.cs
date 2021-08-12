@@ -436,7 +436,7 @@ namespace NaturalPersonsDirectory.Modules.UnitTests
             //Arrange
             const StatusCode expectedStatusCode = StatusCode.AlreadyHaveImage;
             var naturalPerson = PreparedModels.GetBidzinaTabagari();
-            PreparedModels.GetBidzinaTabagari().Address = "guja";
+            PreparedModels.GetBidzinaTabagari().Address = "changedAddress";
             const string imageFileName = "image.jpg";
             var image = new FormFile(new MemoryStream(), 0, 0, "Data", imageFileName);
 

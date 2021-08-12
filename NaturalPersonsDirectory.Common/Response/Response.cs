@@ -1,8 +1,8 @@
 ﻿namespace NaturalPersonsDirectory.Common
 {
-    public class Response<TResponse>
+    public class Response<T>
     {
-        public TResponse Data { get; set; }
+        public T Data { get; set; }
 
         public StatusCode StatusCode { get; set; }
 

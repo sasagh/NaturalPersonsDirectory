@@ -11,6 +11,7 @@ using NaturalPersonsDirectory.DAL;
 using NaturalPersonsDirectory.Db;
 using NaturalPersonsDirectory.Modules;
 using System.Reflection;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using NaturalPersonsDirectory.Common;
 
@@ -64,6 +65,13 @@ namespace NaturalPersonsDirectory.API
                 {
                     const int statusCode = StatusCodes.Status500InternalServerError;
                     var message = StatusMessages.GetMessageByStatusCode(StatusCode.InternalServerError);
+                    
+                    var contextFeature = context.Features.Get<IExceptionHandlerFeature>();
+                    if (contextFeature != null)
+                    {
+                        //TODO implement logging
+                    }
+                    
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
                     context.Response.ContentType = "text/plain";
 
